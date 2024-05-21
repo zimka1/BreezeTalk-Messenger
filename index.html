@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+        .message {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+<h1>WebSocket Client</h1>
+<button id="connectButton">Connect to WebSocket</button>
+<div id="connectionStatus"></div>
+
+<div id="chat">
+    <input type="text" id="messageInput" placeholder="Enter your message">
+    <input type="text" id="toWhomInput" placeholder="Enter user ID (optional)">
+    <button id="sendMessageButton">Send Message</button>
+</div>
+
+<div id="messages"></div>
+
+<script>
+    let socket;
+    let userId;
+
+    document.getElementById('connectButton').addEventListener('click', () => {
+        // Connecting to the WebSocket server
+        socket = new WebSocket('ws://127.0.0.1:9001/');
+
+        // Handling connection open event
+        socket.onopen = function(event) {
+            console.log("Connected to WebSocket server");
+            appendMessage("Connected to WebSocket server");
+            document.getElementById('connectionStatus').innerText = "Connected";
+            document.getElementById('connectButton').style.display = 'none';
+        };
+
+        // Handling incoming messages
+        socket.onmessage = function(event) {
+            console.log(">server>", event.data);
+            appendMessage(">server> " + event.data);
+
+            // If the message contains the user ID, save and display it
+            try {
+                const parsedData = JSON.parse(event.data);
+                if (parsedData.command === "welcome" && parsedData.user_id !== undefined) {
+                    userId = parsedData.user_id;
+                    document.getElementById('connectionStatus').innerText = "Connected (User ID: " + userId + ")";
+                }
+            } catch (e) {
+                console.error("Error parsing message: ", e);
+            }
+        };
+
+        // Handling connection close event
+        socket.onclose = function(event) {
+            console.log("Disconnected from WebSocket server");
+            appendMessage("Disconnected from WebSocket server");
+            document.getElementById('connectionStatus').innerText = "Disconnected";
+        };
+
+        // Handling errors
+        socket.onerror = function(error) {
+            console.error("WebSocket error: ", error);
+            appendMessage("WebSocket error: " + error.message);
+            document.getElementById('connectionStatus').innerText = "Error";
+        };
+    });
+
+    document.getElementById('sendMessageButton').addEventListener('click', () => {
+        const message = document.getElementById('messageInput').value;
+        const toWhom = document.getElementById('toWhomInput').value;
+
+        if (message.trim() !== "" && toWhom.trim() !== "") {
+            const payload = JSON.stringify({command: "private_msg", text: message, user_to: parseInt(toWhom)});
+            socket.send(payload);
+            document.getElementById('messageInput').value = ""; // Clear input field after sending
+            document.getElementById('toWhomInput').value = ""; // Clear input field after sending
+        } else if (message.trim() !== "") {
+            const payload = JSON.stringify({command: "public_msg", text: message});
+            socket.send(payload);
+            document.getElementById('messageInput').value = ""; // Clear input field after sending
+        }
+    });
+
+    // Function to append messages to the page
+    function appendMessage(message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.className = "message";
+        document.getElementById('messages').appendChild(messageDiv);
+    }
+</script>
+</body>
+</html>
