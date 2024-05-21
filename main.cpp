@@ -13,16 +13,19 @@ struct UserData {
     string hisChat;
 };
 
+
 // [USER 17] =server> {"command": "public_msg", "text": "a"}
 // [SERVER] =everyone> {"command": "public_msg", "text":"a", "user_from": 17}
 void process_public_msg(json parsed_data, uWS::WebSocket<false, true, UserData> *ws){
     auto* udata = ws->getUserData();
-    json payload = {
-            {"command", "public_msg"},
-            {"text", parsed_data["text"]},
-            {"user_from", udata->id}
-    };
-    ws->publish("public", payload.dump());
+    string message = parsed_data["text"].dump();
+//    json payload = {
+//            {"command", "public_msg"},
+//            {"text", parsed_data["text"]},
+//            {"user_from", udata->id}
+//    };
+//    ws->publish("public", payload.dump());
+    ws->publish("public", udata->name + ": " + message);
 }
 
 // [USER 17] =server> {"command": "private_msg", "text": "hi", "user_to": 23}
@@ -30,17 +33,29 @@ void process_public_msg(json parsed_data, uWS::WebSocket<false, true, UserData> 
 void process_private_msg(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
     auto* udata = ws->getUserData();
     int user_to = parsed_data["user_to"];
-    json payload = {
-            {"command", "private_msg"},
-            {"text", parsed_data["text"]},
-            {"user_from", udata->id}
-    };
+    string message = parsed_data["text"].dump();
+//    json payload = {
+//            {"command", "private_msg"},
+//            {"text", parsed_data["text"]},
+//            {"user_from", udata->id}
+//    };
     cout << "User " << udata->id << " send message to " << user_to << endl;
-    ws->publish("user" + to_string(user_to), payload.dump());
+//    ws->publish("user" + to_string(user_to), payload.dump());
+    ws->publish("user" + to_string(user_to), udata->name + ": " + message);
+
+}
+
+void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData> *ws){
+    auto* udata = ws->getUserData();
+    udata->name = parsed_data["name"];
+
+    ws->publish("public", "New user " + to_string(udata->id) + " registered with name " + udata->name);
 }
 
 int main() {
     int latest_user_id = 10; // incremented each time
+
+    vector <UserData> Users;
 
     uWS::App().ws<UserData>("/*", {
             .idleTimeout = 16,
@@ -73,6 +88,9 @@ int main() {
                 }
                 if (parsed_data["command"] == "private_msg"){
                     process_private_msg(parsed_data, ws);
+                }
+                if (parsed_data["command"] == "register"){
+                    process_registration(parsed_data, ws);
                 }
             },
             // someone disconnected from the server

@@ -25,7 +25,12 @@
 <button id="connectButton">Connect to WebSocket</button>
 <div id="connectionStatus"></div>
 
-<div id="chat">
+<div id="registration" style="display: none;">
+    <input type="text" id="nameInput" placeholder="Enter your name">
+    <button id="registerButton">Register</button>
+</div>
+
+<div id="chat" style="display: none;">
     <input type="text" id="messageInput" placeholder="Enter your message">
     <input type="text" id="toWhomInput" placeholder="Enter user ID (optional)">
     <button id="sendMessageButton">Send Message</button>
@@ -47,6 +52,7 @@
             appendMessage("Connected to WebSocket server");
             document.getElementById('connectionStatus').innerText = "Connected";
             document.getElementById('connectButton').style.display = 'none';
+            document.getElementById('registration').style.display = 'block';
         };
 
         // Handling incoming messages
@@ -79,6 +85,16 @@
             appendMessage("WebSocket error: " + error.message);
             document.getElementById('connectionStatus').innerText = "Error";
         };
+    });
+
+    document.getElementById('registerButton').addEventListener('click', () => {
+        const name = document.getElementById('nameInput').value;
+        if (name.trim() !== "") {
+            const payload = JSON.stringify({command: "register", name: name});
+            socket.send(payload);
+            document.getElementById('registration').style.display = 'none';
+            document.getElementById('chat').style.display = 'block';
+        }
     });
 
     document.getElementById('sendMessageButton').addEventListener('click', () => {
