@@ -21,8 +21,8 @@
     </style>
 </head>
 <body>
-<h1>WebSocket Client</h1>
-<button id="connectButton">Connect to WebSocket</button>
+<h1>BreezeTalk</h1>
+<button id="connectButton">Connect to server</button>
 <div id="connectionStatus"></div>
 
 <div id="registration" style="display: none;">
@@ -32,8 +32,11 @@
 
 <div id="chat" style="display: none;">
     <input type="text" id="messageInput" placeholder="Enter your message">
-    <input type="text" id="toWhomInput" placeholder="Enter user ID (optional)">
+    <select id="userSelect">
+        <option value="">Select user (optional)</option>
+    </select>
     <button id="sendMessageButton">Send Message</button>
+    <button id="refreshUsersButton">Refresh Users</button>
 </div>
 
 <div id="messages"></div>
@@ -48,8 +51,8 @@
 
         // Handling connection open event
         socket.onopen = function(event) {
-            console.log("Connected to WebSocket server");
-            appendMessage("Connected to WebSocket server");
+            console.log("Connected to server");
+            appendMessage("Connected to server");
             document.getElementById('connectionStatus').innerText = "Connected";
             document.getElementById('connectButton').style.display = 'none';
             document.getElementById('registration').style.display = 'block';
@@ -58,24 +61,42 @@
         // Handling incoming messages
         socket.onmessage = function(event) {
             console.log(">server>", event.data);
-            appendMessage(">server> " + event.data);
 
-            // If the message contains the user ID, save and display it
-            try {
-                const parsedData = JSON.parse(event.data);
-                if (parsedData.command === "welcome" && parsedData.user_id !== undefined) {
-                    userId = parsedData.user_id;
-                    document.getElementById('connectionStatus').innerText = "Connected (User ID: " + userId + ")";
+            // Check if event.data is a string
+            if (typeof event.data === 'string') {
+                try {
+                    const parsedData = JSON.parse(event.data);
+
+                    // If the message contains the user ID, save and display it
+                    if (parsedData.command === "registered" && parsedData.user_id !== undefined) {
+                        userId = parsedData.user_id;
+                        document.getElementById('connectionStatus').innerText = "Connected (User ID: " + userId + ")";
+                    } else if (Array.isArray(parsedData)) {
+                        // If the message is a user list, update the user select options
+                        const userSelect = document.getElementById('userSelect');
+                        userSelect.innerHTML = '<option value="">Select user (optional)</option>';
+                        parsedData.forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.text = `${user.name} (ID: ${user.id})`;
+                            userSelect.appendChild(option);
+                        });
+                    } else if (parsedData.command === "public_msg" || parsedData.command === "private_msg") {
+                        appendMessage(parsedData.text);
+                    }
+                } catch (e) {
+                    // If JSON.parse fails, it means event.data is a plain text message
+                    appendMessage(event.data);
                 }
-            } catch (e) {
-                console.error("Error parsing message: ", e);
+            } else {
+                appendMessage("Received non-text message");
             }
         };
 
         // Handling connection close event
         socket.onclose = function(event) {
-            console.log("Disconnected from WebSocket server");
-            appendMessage("Disconnected from WebSocket server");
+            console.log("Disconnected from server");
+            appendMessage("Disconnected from server");
             document.getElementById('connectionStatus').innerText = "Disconnected";
         };
 
@@ -99,18 +120,22 @@
 
     document.getElementById('sendMessageButton').addEventListener('click', () => {
         const message = document.getElementById('messageInput').value;
-        const toWhom = document.getElementById('toWhomInput').value;
+        const toWhom = document.getElementById('userSelect').value;
 
-        if (message.trim() !== "" && toWhom.trim() !== "") {
+        if (message.trim() !== "" && toWhom !== "") {
             const payload = JSON.stringify({command: "private_msg", text: message, user_to: parseInt(toWhom)});
             socket.send(payload);
             document.getElementById('messageInput').value = ""; // Clear input field after sending
-            document.getElementById('toWhomInput').value = ""; // Clear input field after sending
         } else if (message.trim() !== "") {
             const payload = JSON.stringify({command: "public_msg", text: message});
             socket.send(payload);
             document.getElementById('messageInput').value = ""; // Clear input field after sending
         }
+    });
+
+    document.getElementById('refreshUsersButton').addEventListener('click', () => {
+        const payload = JSON.stringify({command: "user_list"});
+        socket.send(payload);
     });
 
     // Function to append messages to the page
