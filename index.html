@@ -27,6 +27,7 @@
 
 <div id="registration" style="display: none;">
     <input type="text" id="nameInput" placeholder="Enter your name">
+    <input type="password" id="passwordInput" placeholder="Enter your password">
     <button id="registerButton">Register</button>
 </div>
 
@@ -110,8 +111,9 @@
 
     document.getElementById('registerButton').addEventListener('click', () => {
         const name = document.getElementById('nameInput').value;
-        if (name.trim() !== "") {
-            const payload = JSON.stringify({command: "register", name: name});
+        const password = document.getElementById('passwordInput').value;
+        if (name.trim() !== "" && password.trim() !== "") {
+            const payload = JSON.stringify({command: "register", name: name, password: password});
             socket.send(payload);
             document.getElementById('registration').style.display = 'none';
             document.getElementById('chat').style.display = 'block';

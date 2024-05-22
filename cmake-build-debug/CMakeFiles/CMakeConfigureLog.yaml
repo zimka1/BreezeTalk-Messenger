@@ -392,3 +392,48 @@ events:
       
       
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "/Users/zimka/vcpkg/scripts/buildsystems/vcpkg.cmake:859 (_find_package)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
+      - "/Users/zimka/vcpkg/installed/arm64-osx/share/unofficial-sqlite3/unofficial-sqlite3-config.cmake:4 (find_dependency)"
+      - "/Users/zimka/vcpkg/scripts/buildsystems/vcpkg.cmake:859 (_find_package)"
+      - "/Applications/CLion.app/Contents/bin/cmake/mac/aarch64/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)"
+      - "/Users/zimka/vcpkg/installed/arm64-osx/share/SQLiteCpp/SQLiteCppConfig.cmake:3 (find_dependency)"
+      - "/Users/zimka/vcpkg/scripts/buildsystems/vcpkg.cmake:859 (_find_package)"
+      - "CMakeLists.txt:10 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-UMywJK"
+      binary: "/Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-UMywJK"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: "/Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk"
+      VCPKG_APPLOCAL_DEPS: "ON"
+      VCPKG_TARGET_TRIPLET: "arm64-osx"
+      Z_VCPKG_ROOT_DIR: "/Users/zimka/vcpkg"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-UMywJK'
+        
+        Run Build Command(s): /Applications/CLion.app/Contents/bin/ninja/mac/aarch64/ninja -v cmTC_d33af
+        [1/2] /Library/Developer/CommandLineTools/usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_d33af.dir/src.c.o -MF CMakeFiles/cmTC_d33af.dir/src.c.o.d -o CMakeFiles/cmTC_d33af.dir/src.c.o -c /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-UMywJK/src.c
+        [2/2] : && /Library/Developer/CommandLineTools/usr/bin/cc -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/cmTC_d33af.dir/src.c.o -o cmTC_d33af   && :
+        
+      exitCode: 0
+...
