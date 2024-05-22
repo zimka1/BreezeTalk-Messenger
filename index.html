@@ -25,10 +25,21 @@
 <button id="connectButton">Connect to server</button>
 <div id="connectionStatus"></div>
 
-<div id="registration" style="display: none;">
-    <input type="text" id="nameInput" placeholder="Enter your name">
-    <input type="password" id="passwordInput" placeholder="Enter your password">
+<div id="auth" style="display: none;">
     <button id="registerButton">Register</button>
+    <button id="loginButton">Login</button>
+</div>
+
+<div id="registration" style="display: none;">
+    <input type="text" id="regNameInput" placeholder="Enter your name">
+    <input type="password" id="regPasswordInput" placeholder="Enter your password">
+    <button id="registerSubmitButton">Submit Registration</button>
+</div>
+
+<div id="login" style="display: none;">
+    <input type="text" id="loginNameInput" placeholder="Enter your name">
+    <input type="password" id="loginPasswordInput" placeholder="Enter your password">
+    <button id="loginSubmitButton">Submit Login</button>
 </div>
 
 <div id="chat" style="display: none;">
@@ -56,24 +67,28 @@
             appendMessage("Connected to server");
             document.getElementById('connectionStatus').innerText = "Connected";
             document.getElementById('connectButton').style.display = 'none';
-            document.getElementById('registration').style.display = 'block';
+            document.getElementById('auth').style.display = 'block';
         };
 
         // Handling incoming messages
         socket.onmessage = function(event) {
             console.log(">server>", event.data);
 
-            // Check if event.data is a string
             if (typeof event.data === 'string') {
                 try {
                     const parsedData = JSON.parse(event.data);
 
-                    // If the message contains the user ID, save and display it
                     if (parsedData.command === "registered" && parsedData.user_id !== undefined) {
-                        userId = parsedData.user_id;
-                        document.getElementById('connectionStatus').innerText = "Connected (User ID: " + userId + ")";
+                        document.getElementById('connectionStatus').innerText = "Registered (User ID: " + parsedData.user_id + ")";
+                        document.getElementById('registration').style.display = 'none';
+                        document.getElementById('chat').style.display = 'block';
+                    } else if (parsedData.command === "logged_in" && parsedData.user_id !== undefined) {
+                        document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
+                        document.getElementById('login').style.display = 'none';
+                        document.getElementById('chat').style.display = 'block';
+                    } else if (parsedData.command === "login_failed") {
+                        appendMessage("Login failed: " + parsedData.message);
                     } else if (Array.isArray(parsedData)) {
-                        // If the message is a user list, update the user select options
                         const userSelect = document.getElementById('userSelect');
                         userSelect.innerHTML = '<option value="">Select user (optional)</option>';
                         parsedData.forEach(user => {
@@ -86,7 +101,6 @@
                         appendMessage(parsedData.text);
                     }
                 } catch (e) {
-                    // If JSON.parse fails, it means event.data is a plain text message
                     appendMessage(event.data);
                 }
             } else {
@@ -110,13 +124,30 @@
     });
 
     document.getElementById('registerButton').addEventListener('click', () => {
-        const name = document.getElementById('nameInput').value;
-        const password = document.getElementById('passwordInput').value;
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('registration').style.display = 'block';
+    });
+
+    document.getElementById('registerSubmitButton').addEventListener('click', () => {
+        const name = document.getElementById('regNameInput').value;
+        const password = document.getElementById('regPasswordInput').value;
         if (name.trim() !== "" && password.trim() !== "") {
             const payload = JSON.stringify({command: "register", name: name, password: password});
             socket.send(payload);
-            document.getElementById('registration').style.display = 'none';
-            document.getElementById('chat').style.display = 'block';
+        }
+    });
+
+    document.getElementById('loginButton').addEventListener('click', () => {
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('login').style.display = 'block';
+    });
+
+    document.getElementById('loginSubmitButton').addEventListener('click', () => {
+        const name = document.getElementById('loginNameInput').value;
+        const password = document.getElementById('loginPasswordInput').value;
+        if (name.trim() !== "" && password.trim() !== "") {
+            const payload = JSON.stringify({command: "login", name: name, password: password});
+            socket.send(payload);
         }
     });
 
@@ -136,7 +167,7 @@
     });
 
     document.getElementById('refreshUsersButton').addEventListener('click', () => {
-        const payload = JSON.stringify({command: "user_list"});
+        const payload = JSON.stringify({command: "user_list_db"});
         socket.send(payload);
     });
 
