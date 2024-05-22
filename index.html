@@ -86,6 +86,7 @@
                         document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
                         document.getElementById('login').style.display = 'none';
                         document.getElementById('chat').style.display = 'block';
+                        parsedData.messages.forEach(msg => appendMessage(msg.message));
                     } else if (parsedData.command === "login_failed") {
                         appendMessage("Login failed: " + parsedData.message);
                     } else if (Array.isArray(parsedData)) {
