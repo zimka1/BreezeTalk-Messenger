@@ -49,6 +49,7 @@
     </select>
     <button id="sendMessageButton">Send Message</button>
     <button id="refreshUsersButton">Refresh Users</button>
+    <button id="logoutButton">Log Out</button>
 </div>
 
 <div id="messages"></div>
@@ -89,6 +90,10 @@
                         parsedData.messages.forEach(msg => appendMessage(msg.message));
                     } else if (parsedData.command === "login_failed") {
                         appendMessage("Login failed: " + parsedData.message);
+                    } else if (parsedData.command === "logged_out") {
+                        document.getElementById('connectionStatus').innerText = "Logged out";
+                        document.getElementById('chat').style.display = 'none';
+                        document.getElementById('auth').style.display = 'block';
                     } else if (Array.isArray(parsedData)) {
                         const userSelect = document.getElementById('userSelect');
                         userSelect.innerHTML = '<option value="">Select user (optional)</option>';
@@ -172,6 +177,11 @@
         socket.send(payload);
     });
 
+    document.getElementById('logoutButton').addEventListener('click', () => {
+        const payload = JSON.stringify({command: "logout"});
+        socket.send(payload);
+    });
+
     // Function to append messages to the page
     function appendMessage(message) {
         const messageDiv = document.createElement('div');
@@ -182,3 +192,4 @@
 </script>
 </body>
 </html>
+

@@ -203,7 +203,7 @@ void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) 
                 ws->subscribe(udata->hisChat);
 
                 cout << "User " << udata->name << " logged in with ID: " << udata->id << endl;
-                ws->publish("public", "User " + udata->name + " logged in with ID: " + to_string(udata->id));
+                ws->publish("public", "User " + udata->name + " logged in");
             } else {
                 json response = {{"command", "login_failed"}, {"message", "Invalid password"}};
                 ws->send(response.dump(), uWS::OpCode::TEXT);
@@ -217,6 +217,24 @@ void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) 
         cerr << "Error preparing select statement: " << sqlite3_errmsg(db) << endl;
     }
 }
+
+// Process logout
+void process_logout(uWS::WebSocket<false, true, UserData> *ws) {
+    auto* udata = ws->getUserData();
+    if (udata->id != 0) {
+        cout << "User " << udata->id << " logged out" << endl;
+        connectedUsers.erase(udata->id); // Remove user from global container
+        udata->id = 0;
+        udata->name = "";
+        udata->password = "";
+        udata->hisChat = "";
+    }
+
+    json response = {{"command", "logged_out"}};
+    ws->send(response.dump(), uWS::OpCode::TEXT);
+    ws->publish("public", "User " + udata->name + " logged out");
+}
+
 
 // Process user list request from the database
 void process_user_list_from_db(uWS::WebSocket<false, true, UserData> *ws) {
@@ -291,6 +309,8 @@ int main() {
                     process_registration(parsed_data, ws);
                 } else if (parsed_data["command"] == "login") {
                     process_login(parsed_data, ws);
+                } else if (parsed_data["command"] == "logout"){
+                    process_logout(ws);
                 } else if (parsed_data["command"] == "user_list_db") {
                     process_user_list_from_db(ws);
                 }
