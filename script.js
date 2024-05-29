@@ -11,6 +11,7 @@ document.getElementById('connectButton').addEventListener('click', () => {
         document.getElementById('connectionStatus').innerText = "Connected";
         document.getElementById('connectButton').style.display = 'none';
         document.getElementById('auth').style.display = 'block';
+
     };
 
     socket.onmessage = function(event) {
@@ -23,22 +24,14 @@ document.getElementById('connectButton').addEventListener('click', () => {
                 if (parsedData.command === "registered" && parsedData.user_id !== undefined) {
                     document.getElementById('connectionStatus').innerText = "Registered (User ID: " + parsedData.user_id + ")";
                     document.getElementById('registration').style.display = 'none';
-                    document.getElementById('chat').style.display = 'flex';
+                    showChatElements();
                 } else if (parsedData.command === "logged_in" && parsedData.user_id !== undefined) {
                     document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
                     document.getElementById('login').style.display = 'none';
-                    document.getElementById('chat').style.display = 'flex';
-
-                    const payload = JSON.stringify({command: "user_list_db"});
-                    socket.send(payload);
-
-                    parsedData.messages.forEach(msg => appendMessage(`${msg.from}: ${msg.message}`));
+                    showChatElements();
+                    parsedData.messages.forEach(msg => appendMessage(`${msg.message}`));
                 } else if (parsedData.command === "login_failed") {
                     appendMessage("Login failed: " + parsedData.message);
-                } else if (parsedData.command === "logged_out") {
-                    document.getElementById('connectionStatus').innerText = "Logged out";
-                    document.getElementById('chat').style.display = 'none';
-                    document.getElementById('auth').style.display = 'block';
                 } else if (parsedData.command === "user_list") {
                     updateChatList(parsedData.users);
                 } else if (parsedData.command === "user_list_refresh") {
@@ -114,6 +107,7 @@ document.getElementById('sendMessageButton').addEventListener('click', () => {
 });
 
 document.getElementById('logoutButton').addEventListener('click', () => {
+    hideChatElements();
     const payload = JSON.stringify({command: "logout"});
     socket.send(payload);
 });
@@ -144,4 +138,24 @@ function updateChatList(users) {
         });
         chatItems.appendChild(chatItem);
     });
+}
+
+function showChatElements() {
+    document.getElementById('chatList').style.display = 'block';
+    document.getElementById('messages').style.display = 'block';
+    document.getElementById('messageInputContainer').style.display = 'flex';
+    document.getElementById('logoutButton').style.display = 'block';
+    const payload = JSON.stringify({command: "user_list_db"});
+    socket.send(payload);
+}
+
+function hideChatElements() {
+    document.getElementById('connectionStatus').innerText = "Connected";
+    document.getElementById('connectButton').style.display = 'none';
+    document.getElementById('auth').style.display = 'block';
+    document.getElementById('chatList').style.display = 'none';
+    document.getElementById('messages').style.display = 'none';
+    document.getElementById('messageInputContainer').style.display = 'none';
+    document.getElementById('logoutButton').style.display = 'none';
+
 }

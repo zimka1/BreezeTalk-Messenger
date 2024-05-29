@@ -11,28 +11,43 @@ body {
 #header {
     background-color: #00ACC1;
     padding: 10px;
-    text-align: center;
     color: #fff;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     position: relative;
+}
+.header-left {
+    display: flex;
+    align-items: center;
 }
 #header img {
     width: 40px;
     height: 40px;
     margin-right: 10px;
-    background-color: #00ACC1;
 }
 #header h1 {
     font-size: 24px;
     margin: 0;
 }
+.header-right {
+    display: flex;
+    align-items: center;
+}
 #connectionStatus {
-    position: absolute;
-    right: 10px;
-    top: 10px;
     font-size: 12px;
+    margin-right: 15px;
+}
+#logoutButton {
+    background-color: #00796B;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#logoutButton:hover {
+    background-color: #004D40;
 }
 #content {
     display: flex;
@@ -101,4 +116,7 @@ body {
 }
 #auth, #registration, #login, #chat {
     display: none;
+}
+#messageInputContainer {
+    margin-top: auto;
 }

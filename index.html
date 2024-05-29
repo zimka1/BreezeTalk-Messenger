@@ -7,12 +7,17 @@
 </head>
 <body>
 <div id="header">
-    <img src="BreezeTalk_logo.png" alt="BreezeTalk Logo">
-    <h1>BreezeTalk</h1>
-    <div id="connectionStatus"></div>
+    <div class="header-left">
+        <img src="BreezeTalk_logo.png" alt="BreezeTalk Logo">
+        <h1>BreezeTalk</h1>
+    </div>
+    <div class="header-right">
+        <div id="connectionStatus"></div>
+        <button id="logoutButton" style="display: none;">Log Out</button>
+    </div>
 </div>
 <div id="content">
-    <div id="chatList">
+    <div id="chatList" style="display: none;">
         <h3>Chats</h3>
         <div id="chatItems"></div> <!-- Список чатов будет здесь -->
     </div>
@@ -36,13 +41,12 @@
             <button id="loginSubmitButton">Submit Login</button>
         </div>
 
-        <div id="chat" class="input-group">
+        <div id="messages" style="display: none;"></div>
+
+        <div id="messageInputContainer" class="input-group" style="display: none;">
             <input type="text" id="messageInput" placeholder="Enter your message">
             <button id="sendMessageButton">Send Message</button>
-            <button id="logoutButton">Log Out</button>
         </div>
-
-        <div id="messages"></div>
     </div>
 </div>
 

@@ -243,9 +243,6 @@ void process_logout(uWS::WebSocket<false, true, UserData> *ws) {
         udata->password = "";
         udata->hisChat = "";
     }
-
-    json response = {{"command", "logged_out"}};
-    ws->send(response.dump(), uWS::OpCode::TEXT);
     ws->publish("public", "User " + udata->name + " logged out");
 }
 
