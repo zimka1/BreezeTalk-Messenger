@@ -1,24 +1,18 @@
 let socket;
 let userId;
+let selectedUserId = null;
 
 document.getElementById('connectButton').addEventListener('click', () => {
-    // Connecting to the WebSocket server
     socket = new WebSocket('ws://127.0.0.1:9001/');
 
-    // Handling connection open event
     socket.onopen = function(event) {
         console.log("Connected to server");
         appendMessage("Connected to server");
         document.getElementById('connectionStatus').innerText = "Connected";
         document.getElementById('connectButton').style.display = 'none';
         document.getElementById('auth').style.display = 'block';
-
-        // Request user list immediately after connecting
-        const payload = JSON.stringify({command: "user_list_db"});
-        socket.send(payload);
     };
 
-    // Handling incoming messages
     socket.onmessage = function(event) {
         console.log(">server>", event.data);
 
@@ -34,22 +28,25 @@ document.getElementById('connectButton').addEventListener('click', () => {
                     document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
                     document.getElementById('login').style.display = 'none';
                     document.getElementById('chat').style.display = 'flex';
-                    parsedData.messages.forEach(msg => appendMessage(msg.message));
+
+                    const payload = JSON.stringify({command: "user_list_db"});
+                    socket.send(payload);
+
+                    parsedData.messages.forEach(msg => appendMessage(`${msg.from}: ${msg.message}`));
                 } else if (parsedData.command === "login_failed") {
                     appendMessage("Login failed: " + parsedData.message);
                 } else if (parsedData.command === "logged_out") {
                     document.getElementById('connectionStatus').innerText = "Logged out";
                     document.getElementById('chat').style.display = 'none';
                     document.getElementById('auth').style.display = 'block';
-                } else if (Array.isArray(parsedData)) {
-                    const userSelect = document.getElementById('userSelect');
-                    userSelect.innerHTML = '<option value="">Select user (optional)</option>';
-                    parsedData.forEach(user => {
-                        const option = document.createElement('option');
-                        option.value = user.id;
-                        option.text = `${user.name} (ID: ${user.id})`;
-                        userSelect.appendChild(option);
-                    });
+                } else if (parsedData.command === "user_list") {
+                    updateChatList(parsedData.users);
+                } else if (parsedData.command === "user_list_refresh") {
+                    const payload = JSON.stringify({command: "user_list_db"});
+                    socket.send(payload);
+                } else if (parsedData.command === "messages") {
+                    document.getElementById('messages').innerHTML = '';
+                    parsedData.messages.forEach(msg => appendMessage(`${msg.message}`));
                 } else if (parsedData.command === "public_msg" || parsedData.command === "private_msg") {
                     appendMessage(parsedData.text);
                 }
@@ -61,14 +58,12 @@ document.getElementById('connectButton').addEventListener('click', () => {
         }
     };
 
-    // Handling connection close event
     socket.onclose = function(event) {
         console.log("Disconnected from server");
         appendMessage("Disconnected from server");
         document.getElementById('connectionStatus').innerText = "Disconnected";
     };
 
-    // Handling errors
     socket.onerror = function(error) {
         console.error("WebSocket error: ", error);
         appendMessage("WebSocket error: " + error.message);
@@ -106,10 +101,9 @@ document.getElementById('loginSubmitButton').addEventListener('click', () => {
 
 document.getElementById('sendMessageButton').addEventListener('click', () => {
     const message = document.getElementById('messageInput').value;
-    const toWhom = document.getElementById('userSelect').value;
 
-    if (message.trim() !== "" && toWhom !== "") {
-        const payload = JSON.stringify({command: "private_msg", text: message, user_to: parseInt(toWhom)});
+    if (message.trim() !== "" && selectedUserId !== null) {
+        const payload = JSON.stringify({command: "private_msg", text: message, user_to: selectedUserId});
         socket.send(payload);
         document.getElementById('messageInput').value = ""; // Clear input field after sending
     } else if (message.trim() !== "") {
@@ -124,10 +118,30 @@ document.getElementById('logoutButton').addEventListener('click', () => {
     socket.send(payload);
 });
 
-// Function to append messages to the page
 function appendMessage(message) {
     const messageDiv = document.createElement('div');
     messageDiv.textContent = message;
     messageDiv.className = "message";
     document.getElementById('messages').appendChild(messageDiv);
+}
+
+function loadMessages(userId) {
+    const payload = JSON.stringify({command: "get_messages", user_id: userId});
+    socket.send(payload);
+}
+
+function updateChatList(users) {
+    const chatItems = document.getElementById('chatItems');
+    chatItems.innerHTML = '';
+    users.forEach(user => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.textContent = `${user.name} (ID: ${user.id})`;
+        chatItem.dataset.userId = user.id;
+        chatItem.addEventListener('click', () => {
+            selectedUserId = user.id;
+            loadMessages(user.id);
+        });
+        chatItems.appendChild(chatItem);
+    });
 }

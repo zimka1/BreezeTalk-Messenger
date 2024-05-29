@@ -14,7 +14,7 @@
 <div id="content">
     <div id="chatList">
         <h3>Chats</h3>
-        <!-- Future space for chat list -->
+        <div id="chatItems"></div> <!-- Список чатов будет здесь -->
     </div>
     <div id="chatWindow">
         <button id="connectButton">Connect to server</button>
@@ -38,11 +38,7 @@
 
         <div id="chat" class="input-group">
             <input type="text" id="messageInput" placeholder="Enter your message">
-            <select id="userSelect">
-                <option value="">Select user (optional)</option>
-            </select>
             <button id="sendMessageButton">Send Message</button>
-            <button id="refreshUsersButton">Refresh Users</button>
             <button id="logoutButton">Log Out</button>
         </div>
 

@@ -36,9 +36,11 @@ void initDatabase() {
 
     const char* createMessagesTable = "CREATE TABLE IF NOT EXISTS messages ("
                                       "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                                      "user_id INTEGER,"
+                                      "user_from INTEGER,"
+                                      "user_to INTEGER,"
                                       "message TEXT NOT NULL,"
-                                      "FOREIGN KEY(user_id) REFERENCES users(id));";
+                                      "FOREIGN KEY(user_from) REFERENCES users(id),"
+                                      "FOREIGN KEY(user_to) REFERENCES users(id));";
 
     char* errMsg = nullptr;
     if (sqlite3_exec(db, createUsersTable, nullptr, nullptr, &errMsg) != SQLITE_OK) {
@@ -54,13 +56,14 @@ void initDatabase() {
     }
 }
 
-
-void saveMessage(int user_id, const string& message) {
-    const char* insertMessageSQL = "INSERT INTO messages (user_id, message) VALUES (?, ?)";
+void saveMessage(int user_from, int user_to, const string& message) {
+    const char* insertMessageSQL = "INSERT INTO messages (user_from, user_to, message) VALUES (?, ?, ?)";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, insertMessageSQL, -1, &stmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_int(stmt, 1, user_id);
-        sqlite3_bind_text(stmt, 2, message.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 1, user_from);
+        sqlite3_bind_int(stmt, 2, user_to);
+        sqlite3_bind_text(stmt, 3, message.c_str(), -1, SQLITE_STATIC);
+
         if (sqlite3_step(stmt) != SQLITE_DONE) {
             cerr << "Error inserting message: " << sqlite3_errmsg(db) << endl;
         }
@@ -70,16 +73,21 @@ void saveMessage(int user_id, const string& message) {
     }
 }
 
-json getMessages(int user_id) {
-    const char* getMessagesSQL = "SELECT message FROM messages WHERE user_id = ?";
+json getMessages(int user_from, int user_to) {
+    const char* getMessagesSQL = "SELECT user_from, user_to, message FROM messages WHERE (user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?)";
     sqlite3_stmt* stmt;
     json messages = json::array();
 
     if (sqlite3_prepare_v2(db, getMessagesSQL, -1, &stmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_int(stmt, 1, user_id);
+        sqlite3_bind_int(stmt, 1, user_from);
+        sqlite3_bind_int(stmt, 2, user_to);
+        sqlite3_bind_int(stmt, 3, user_to);
+        sqlite3_bind_int(stmt, 4, user_from);
         while (sqlite3_step(stmt) == SQLITE_ROW) {
-            const char* messageText = (const char*)sqlite3_column_text(stmt, 0);
-            messages.push_back({{"message", messageText}});
+            int from = sqlite3_column_int(stmt, 0);
+            int to = sqlite3_column_int(stmt, 1);
+            const char* messageText = (const char*)sqlite3_column_text(stmt, 2);
+            messages.push_back({{"from", from}, {"to", to}, {"message", messageText}});
         }
         sqlite3_finalize(stmt);
     } else {
@@ -88,7 +96,6 @@ json getMessages(int user_id) {
 
     return messages;
 }
-
 
 // Get the last user ID from the database
 int getLastUserId(sqlite3* db) {
@@ -112,9 +119,9 @@ int getLastUserId(sqlite3* db) {
 void process_public_msg(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
     auto* udata = ws->getUserData();
     string message = parsed_data["text"];
-    for (int i = 1; i < latest_user_id; i++){
-        if (udata->id != i){
-            saveMessage(i, udata->name + ": " +  message);
+    for (const auto& user : connectedUsers) {
+        if (udata->id != user.first) {
+            saveMessage(udata->id, user.first, udata->name + ": " +  message);
         }
     }
 
@@ -126,12 +133,11 @@ void process_private_msg(json parsed_data, uWS::WebSocket<false, true, UserData>
     auto* udata = ws->getUserData();
     int user_to = parsed_data["user_to"];
     string message = parsed_data["text"];
-    saveMessage(user_to, udata->name + ": " +  message);
+    saveMessage(udata->id, user_to, udata->name + ": " +  message);
 
     cout << "User " << udata->id << " sent a message to " << user_to << endl;
     ws->publish("user" + to_string(user_to), udata->name + ": " + message);
 }
-
 
 // Process registration
 void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
@@ -168,6 +174,12 @@ void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData
     ws->publish("public", "New user " + to_string(udata->id) + " registered with name " + udata->name);
 
     connectedUsers[udata->id] = udata;
+
+    // Notify all users to refresh the user list
+    json notifyAll = {
+            {"command", "user_list_refresh"}
+    };
+    ws->publish("public", notifyAll.dump());
 }
 
 // Process login and send previous messages
@@ -196,7 +208,7 @@ void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) 
                         {"command", "logged_in"},
                         {"user_id", udata->id},
                         {"name", udata->name},
-                        {"messages", getMessages(udata->id)}
+                        {"messages", getMessages(udata->id, udata->id)}
                 };
                 ws->send(response.dump(), uWS::OpCode::TEXT);
                 ws->subscribe("public");
@@ -204,6 +216,8 @@ void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) 
 
                 cout << "User " << udata->name << " logged in with ID: " << udata->id << endl;
                 ws->publish("public", "User " + udata->name + " logged in");
+
+                connectedUsers[udata->id] = udata;
             } else {
                 json response = {{"command", "login_failed"}, {"message", "Invalid password"}};
                 ws->send(response.dump(), uWS::OpCode::TEXT);
@@ -235,9 +249,9 @@ void process_logout(uWS::WebSocket<false, true, UserData> *ws) {
     ws->publish("public", "User " + udata->name + " logged out");
 }
 
-
 // Process user list request from the database
 void process_user_list_from_db(uWS::WebSocket<false, true, UserData> *ws) {
+    auto* udata = ws->getUserData();
     const char* sql = "SELECT id, name FROM users";
     sqlite3_stmt* stmt;
     json userList = json::array();
@@ -246,14 +260,35 @@ void process_user_list_from_db(uWS::WebSocket<false, true, UserData> *ws) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             int id = sqlite3_column_int(stmt, 0);
             const char* name = (const char*)sqlite3_column_text(stmt, 1);
-            userList.push_back({{"id", id}, {"name", name}});
+            if (id != udata->id) {
+                userList.push_back({{"id", id}, {"name", name}});
+            }
         }
         sqlite3_finalize(stmt);
     } else {
         cerr << "Error executing query: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    ws->send(userList.dump(), uWS::OpCode::TEXT);
+    json response = {
+            {"command", "user_list"},
+            {"users", userList}
+    };
+
+    ws->send(response.dump(), uWS::OpCode::TEXT);
+}
+
+// Process get messages
+void process_get_messages(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
+    auto* udata = ws->getUserData();
+    int user_id = parsed_data["user_id"];
+    json messages = getMessages(udata->id, user_id);
+
+    json response = {
+            {"command", "messages"},
+            {"user_id", user_id},
+            {"messages", messages}
+    };
+    ws->send(response.dump(), uWS::OpCode::TEXT);
 }
 
 // Function to print table contents
@@ -279,26 +314,18 @@ void printUsersTable() {
     }
 }
 
-
-
 int main() {
-    // Initialize database
     initDatabase();
-
-    // Initialize the latest user ID after opening the database
     latest_user_id = getLastUserId(db) + 1;
 
     uWS::App().ws<UserData>("/*", {
             .idleTimeout = 16,
-            /* Handlers */
             .upgrade = nullptr,
-            // User connected to the server
             .open = [](auto* ws) {
                 ws->send("Welcome to BreezeTalk", uWS::OpCode::TEXT);
                 cout << "Users table contents:" << endl;
                 printUsersTable();
             },
-            // User sent data to the server
             .message = [](auto *ws, std::string_view message, uWS::OpCode opCode) {
                 json parsed_data = json::parse(message);
                 if (parsed_data["command"] == "public_msg") {
@@ -313,13 +340,14 @@ int main() {
                     process_logout(ws);
                 } else if (parsed_data["command"] == "user_list_db") {
                     process_user_list_from_db(ws);
+                } else if (parsed_data["command"] == "get_messages") {
+                    process_get_messages(parsed_data, ws);
                 }
             },
-            // User disconnected from the server
             .close = [](auto *ws, int /*code*/, std::string_view /*message*/) {
                 auto* data = ws->getUserData();
                 cout << "User disconnected: " << data->id << endl;
-                connectedUsers.erase(data->id); // Remove user from global container
+                connectedUsers.erase(data->id);
             }
     }).listen(9001, [](auto *listen_socket) {
         if (listen_socket) {
@@ -327,7 +355,6 @@ int main() {
         }
     }).run();
 
-    // Close database when server shuts down
     sqlite3_close(db);
 
     return 0;

@@ -46,6 +46,14 @@ body {
     background-color: #ffffff;
     overflow-y: auto;
 }
+.chat-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+.chat-item:hover {
+    background-color: #f0f0f0;
+}
 #chatWindow {
     flex: 1;
     display: flex;
@@ -73,16 +81,16 @@ body {
     display: flex;
     margin-bottom: 10px;
 }
-.input-group input, .input-group select, .input-group button, #auth button{
+.input-group input, .input-group button, #auth button {
     padding: 10px;
     margin-right: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
 }
-.input-group input, .input-group select {
+.input-group input {
     flex: 1;
 }
-.input-group button, #auth button{
+.input-group button, #auth button {
     background-color: #00796B;
     color: #fff;
     border: none;
