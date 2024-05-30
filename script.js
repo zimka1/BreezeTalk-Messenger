@@ -11,7 +11,6 @@ document.getElementById('connectButton').addEventListener('click', () => {
         document.getElementById('connectionStatus').innerText = "Connected";
         document.getElementById('connectButton').style.display = 'none';
         document.getElementById('auth').style.display = 'block';
-
     };
 
     socket.onmessage = function(event) {
@@ -133,6 +132,7 @@ function updateChatList(users) {
         chatItem.textContent = `${user.name} (ID: ${user.id})`;
         chatItem.dataset.userId = user.id;
         chatItem.addEventListener('click', () => {
+            setActiveChat(chatItem);
             selectedUserId = user.id;
             loadMessages(user.id);
         });
@@ -157,5 +157,12 @@ function hideChatElements() {
     document.getElementById('messages').style.display = 'none';
     document.getElementById('messageInputContainer').style.display = 'none';
     document.getElementById('logoutButton').style.display = 'none';
+}
 
+function setActiveChat(chatItem) {
+    const currentActive = document.querySelector('.chat-item.active-chat');
+    if (currentActive) {
+        currentActive.classList.remove('active-chat');
+    }
+    chatItem.classList.add('active-chat');
 }
