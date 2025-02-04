@@ -1,0 +1,97 @@
+.enter .logo{
+    display: flex;
+    align-items: center;
+}
+
+.enter .logo img {
+    width: 100px;
+    height: 100px;
+}
+.enter .logo h1 {
+    padding-right: 20px;
+    font-size: 30px;
+}
+
+.enter {
+    display: none;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.enterTitle{
+    align-items: center;
+    text-align: center;
+    background-color: #ffffff;
+    font-weight: 600;
+    font-size: 20px;
+    border-radius: 15px 15px 0 0;
+    box-sizing: border-box;
+    padding: 20px 16px;
+    position: relative;
+    width: 100%;
+    z-index: 1;
+}
+
+#registration, #login {
+    display: flex;
+    width: 350px;
+    height: 400px;
+    background-color: #5ECDEF;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px;
+}
+
+.input-group {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+}
+
+.input-group .custom-input {
+    width: 250px;
+    padding: 15px;
+    font-size: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.input-group button{
+    height: 50px;
+    width: 200px;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #00796B;
+    color: #fff;
+    cursor: pointer;
+}
+
+.input-group button:hover {
+    background-color: #004D40;
+}
+
+.input-group a{
+    color: #0459c5;
+    font-family: SFProText-Semibold, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 20px;
+    text-decoration: none;
+}
+
+
+.registrationItem, .loginItem {
+    margin-bottom: 20px;
+}
+
+
+#registration, #chat, #login {
+    display: none;
+}

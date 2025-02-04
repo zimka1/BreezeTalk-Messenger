@@ -1,5 +1,5 @@
 let socket;
-let userId;
+let curUserID;
 let selectedUserId = null;
 
 document.getElementById('connectButton').addEventListener('click', () => {
@@ -10,7 +10,8 @@ document.getElementById('connectButton').addEventListener('click', () => {
         appendMessage("Connected to server");
         document.getElementById('connectionStatus').innerText = "Connected";
         document.getElementById('connectButton').style.display = 'none';
-        document.getElementById('auth').style.display = 'block';
+        document.getElementById('enterID').style.display = 'flex';
+        document.getElementById('login').style.display = 'flex';
     };
 
     socket.onmessage = function(event) {
@@ -19,16 +20,16 @@ document.getElementById('connectButton').addEventListener('click', () => {
         if (typeof event.data === 'string') {
             try {
                 const parsedData = JSON.parse(event.data);
+                console.log(parsedData)
 
                 if (parsedData.command === "registered" && parsedData.user_id !== undefined) {
-                    document.getElementById('connectionStatus').innerText = "Registered (User ID: " + parsedData.user_id + ")";
-                    document.getElementById('registration').style.display = 'none';
+                    document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
+                    curUserID = parsedData.user_id;
                     showChatElements();
                 } else if (parsedData.command === "logged_in" && parsedData.user_id !== undefined) {
                     document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
-                    document.getElementById('login').style.display = 'none';
+                    curUserID = parsedData.user_id;
                     showChatElements();
-                    parsedData.messages.forEach(msg => appendMessage(`${msg.message}`));
                 } else if (parsedData.command === "login_failed") {
                     appendMessage("Login failed: " + parsedData.message);
                 } else if (parsedData.command === "user_list") {
@@ -38,9 +39,11 @@ document.getElementById('connectButton').addEventListener('click', () => {
                     socket.send(payload);
                 } else if (parsedData.command === "messages") {
                     document.getElementById('messages').innerHTML = '';
-                    parsedData.messages.forEach(msg => appendMessage(`${msg.message}`));
-                } else if (parsedData.command === "public_msg" || parsedData.command === "private_msg") {
-                    appendMessage(parsedData.text);
+                    parsedData.messages.forEach(msg => appendMessage(`${msg.from}`,`${msg.message}`));
+                } else if (parsedData.command === "private_msg") {
+                    if (selectedUserId === parsedData.user_from){
+                        loadMessages(parsedData.user_from);
+                    }
                 }
             } catch (e) {
                 appendMessage(event.data);
@@ -63,45 +66,40 @@ document.getElementById('connectButton').addEventListener('click', () => {
     };
 });
 
-document.getElementById('registerButton').addEventListener('click', () => {
-    document.getElementById('auth').style.display = 'none';
-    document.getElementById('registration').style.display = 'block';
+
+document.getElementById('creatNewAccount').addEventListener('click', () => {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('registration').style.display = 'flex';
+});
+
+document.getElementById('alreadyHaveAccount').addEventListener('click', () => {
+    document.getElementById('registration').style.display = 'none';
+    document.getElementById('login').style.display = 'flex';
 });
 
 document.getElementById('registerSubmitButton').addEventListener('click', () => {
     const name = document.getElementById('regNameInput').value;
     const password = document.getElementById('regPasswordInput').value;
+
+    document.getElementById('regNameInput').value = "";
+    document.getElementById('regPasswordInput').value = "";
+
     if (name.trim() !== "" && password.trim() !== "") {
         const payload = JSON.stringify({command: "register", name: name, password: password});
         socket.send(payload);
     }
 });
 
-document.getElementById('loginButton').addEventListener('click', () => {
-    document.getElementById('auth').style.display = 'none';
-    document.getElementById('login').style.display = 'block';
-});
-
 document.getElementById('loginSubmitButton').addEventListener('click', () => {
     const name = document.getElementById('loginNameInput').value;
     const password = document.getElementById('loginPasswordInput').value;
+
+    document.getElementById('loginNameInput').value = "";
+    document.getElementById('loginPasswordInput').value = "";
+
     if (name.trim() !== "" && password.trim() !== "") {
         const payload = JSON.stringify({command: "login", name: name, password: password});
         socket.send(payload);
-    }
-});
-
-document.getElementById('sendMessageButton').addEventListener('click', () => {
-    const message = document.getElementById('messageInput').value;
-
-    if (message.trim() !== "" && selectedUserId !== null) {
-        const payload = JSON.stringify({command: "private_msg", text: message, user_to: selectedUserId});
-        socket.send(payload);
-        document.getElementById('messageInput').value = ""; // Clear input field after sending
-    } else if (message.trim() !== "") {
-        const payload = JSON.stringify({command: "public_msg", text: message});
-        socket.send(payload);
-        document.getElementById('messageInput').value = ""; // Clear input field after sending
     }
 });
 
@@ -111,17 +109,17 @@ document.getElementById('logoutButton').addEventListener('click', () => {
     socket.send(payload);
 });
 
-function appendMessage(message) {
-    const messageDiv = document.createElement('div');
-    messageDiv.textContent = message;
-    messageDiv.className = "message";
-    document.getElementById('messages').appendChild(messageDiv);
-}
+document.getElementById('sendMessageButton').addEventListener('click', () => {
+    const message = document.getElementById('messageInput').value;
 
-function loadMessages(userId) {
-    const payload = JSON.stringify({command: "get_messages", user_id: userId});
-    socket.send(payload);
-}
+    if (message.trim() !== "" && selectedUserId !== null) {
+        const payload = JSON.stringify({command: "private_msg", text: message, user_from: curUserID, user_to: selectedUserId});
+        socket.send(payload);
+        document.getElementById('messageInput').value = "";
+        loadMessages(selectedUserId)
+    }
+});
+
 
 function updateChatList(users) {
     const chatItems = document.getElementById('chatItems');
@@ -132,31 +130,39 @@ function updateChatList(users) {
         chatItem.textContent = `${user.name} (ID: ${user.id})`;
         chatItem.dataset.userId = user.id;
         chatItem.addEventListener('click', () => {
+            showMessages();
             setActiveChat(chatItem);
-            selectedUserId = user.id;
-            loadMessages(user.id);
+            selectedUserId = Number(chatItem.dataset.userId);
+            loadMessages(selectedUserId);
+            appendCompanionInfInChat(`${user.name}`);
         });
         chatItems.appendChild(chatItem);
     });
 }
 
-function showChatElements() {
-    document.getElementById('chatList').style.display = 'block';
-    document.getElementById('messages').style.display = 'block';
-    document.getElementById('messageInputContainer').style.display = 'flex';
-    document.getElementById('logoutButton').style.display = 'block';
-    const payload = JSON.stringify({command: "user_list_db"});
-    socket.send(payload);
+function appendMessage(userFromID, message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    if (userFromID == curUserID) {
+        messageDiv.className = "message curUser";
+    } else {
+        messageDiv.className = "message"
+    }
+    document.getElementById('messages').appendChild(messageDiv);
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function hideChatElements() {
-    document.getElementById('connectionStatus').innerText = "Connected";
-    document.getElementById('connectButton').style.display = 'none';
-    document.getElementById('auth').style.display = 'block';
-    document.getElementById('chatList').style.display = 'none';
-    document.getElementById('messages').style.display = 'none';
-    document.getElementById('messageInputContainer').style.display = 'none';
-    document.getElementById('logoutButton').style.display = 'none';
+function appendCompanionInfInChat(userName){
+    document.getElementById('companionInfInChat').innerHTML = '';
+    const infDiv = document.createElement('div');
+    infDiv.textContent = userName;
+    document.getElementById('companionInfInChat').appendChild(infDiv);
+}
+
+function loadMessages(userId) {
+    const payload = JSON.stringify({command: "get_messages", user_id: userId});
+    socket.send(payload);
 }
 
 function setActiveChat(chatItem) {
@@ -165,4 +171,30 @@ function setActiveChat(chatItem) {
         currentActive.classList.remove('active-chat');
     }
     chatItem.classList.add('active-chat');
+}
+
+
+function showChatElements() {
+    document.getElementById('enterID').style.display = 'none';
+    document.getElementById('content').style.display = 'flex'
+    document.getElementById('header').style.display = 'flex'
+    const payload = JSON.stringify({command: "user_list_db"});
+    socket.send(payload);
+}
+
+function showMessages() {
+    document.getElementById('companionInfInChat').style.display = 'block';
+    document.getElementById('messages').style.display = 'flex';
+    document.getElementById('messageInputContainer').style.display = 'flex';
+
+}
+
+function hideChatElements() {
+    document.getElementById('enterID').style.display = 'none';
+    document.getElementById('content').style.display = 'none'
+    document.getElementById('header').style.display = 'none'
+    document.getElementById('companionInfInChat').style.display = 'none';
+    document.getElementById('messages').style.display = 'none';
+    document.getElementById('messageInputContainer').style.display = 'none';
+    document.getElementById('connectButton').style.display = 'block';
 }

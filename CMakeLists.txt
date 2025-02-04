@@ -16,7 +16,8 @@ include_directories("/Users/zimka/vcpkg/installed/arm64-osx/include")
 link_directories("/Users/zimka/vcpkg/installed/arm64-osx/lib")
 
 # Добавьте исполняемый файл
-add_executable(BreezeTalk main.cpp)
+add_executable(BreezeTalk main.cpp
+)
 
 # Свяжите исполняемый файл с библиотеками
 target_link_libraries(BreezeTalk PRIVATE SQLite::SQLite3 SQLiteCpp ZLIB::ZLIB uv z usockets)

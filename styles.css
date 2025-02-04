@@ -12,7 +12,7 @@ body {
     background-color: #00ACC1;
     padding: 10px;
     color: #fff;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: space-between;
     position: relative;
@@ -49,78 +49,18 @@ body {
 #logoutButton:hover {
     background-color: #004D40;
 }
-#content {
-    display: flex;
-    flex: 1;
-    height: calc(100vh - 60px);
-}
-#chatList {
-    width: 250px;
-    border-right: 1px solid #ddd;
-    padding: 10px;
-    background-color: #ffffff;
-    overflow-y: auto;
-}
-.chat-item {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    cursor: pointer;
-}
-.chat-item:hover {
-    background-color: #f0f0f0;
-}
-.chat-item.active-chat {
-    background-color: #d0f0f0;
-    font-weight: bold;
-}
-#chatWindow {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    background-color: #f9f9f9;
-}
-#messages {
-    flex: 1;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-    overflow-y: scroll;
+
+#connectButton {
+    margin: 0 auto;
+    color: #f9f9f9;
     border-radius: 5px;
-    background-color: #ffffff;
-}
-.message {
-    padding: 5px;
-    border-bottom: 1px solid #ddd;
-}
-.message:last-child {
-    border-bottom: none;
-}
-.input-group, #auth {
-    display: flex;
-    margin-bottom: 10px;
-}
-.input-group input, .input-group button, #auth button {
-    padding: 10px;
-    margin-right: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-.input-group input {
-    flex: 1;
-}
-.input-group button, #auth button {
-    background-color: #00796B;
-    color: #fff;
     border: none;
-    cursor: pointer;
+    background-color: #00796B;
+    width: 10%;
+    height: 5%;
 }
-.input-group button:hover, #auth button:hover {
-    background-color: #004D40;
-}
-#auth, #registration, #login, #chat {
-    display: none;
-}
-#messageInputContainer {
-    margin-top: auto;
-}
+
+
+
+
+

@@ -133,10 +133,16 @@ void process_private_msg(json parsed_data, uWS::WebSocket<false, true, UserData>
     auto* udata = ws->getUserData();
     int user_to = parsed_data["user_to"];
     string message = parsed_data["text"];
-    saveMessage(udata->id, user_to, udata->name + ": " +  message);
+    saveMessage(udata->id, user_to, message);
 
     cout << "User " << udata->id << " sent a message to " << user_to << endl;
-    ws->publish("user" + to_string(user_to), udata->name + ": " + message);
+    json response = {
+            {"command", "private_msg"},
+            {"user_from", udata->id},
+            {"user_to", user_to},
+            {"message", message}
+    };
+    ws->publish("user" + to_string(user_to), response.dump());
 }
 
 // Process registration

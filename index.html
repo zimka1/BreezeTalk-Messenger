@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>BreezeTalk</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="enter_styles.css">
+    <link rel="stylesheet" href="chat_styles.css">
 </head>
 <body>
 <div id="header">
@@ -13,39 +15,53 @@
     </div>
     <div class="header-right">
         <div id="connectionStatus"></div>
-        <button id="logoutButton" style="display: none;">Log Out</button>
+        <button id="logoutButton">Log Out</button>
     </div>
 </div>
-<div id="content">
-    <div id="chatList" style="display: none;">
-        <h3>Chats</h3>
-        <div id="chatItems"></div> <!-- Список чатов будет здесь -->
+
+<button id="connectButton">Connect to server</button>
+
+<div class="enter" id="enterID">
+    <div class="logo">
+        <img src="BreezeTalk_logo.png" alt="BreezeTalk Logo">
+        <h1>BreezeTalk</h1>
     </div>
+    <div id="login">
+        <div class="enterTitle">Log in</div>
+        <div class="input-group">
+            <input class="loginItem custom-input" type="text" id="loginNameInput" placeholder="Enter your name">
+            <input class="loginItem custom-input" type="password" id="loginPasswordInput" placeholder="Enter your password">
+            <button class="loginItem" id="loginSubmitButton">Submit Login</button>
+            <a href="javascript:void(0)" class="loginItem" id="creatNewAccount">Creat new account</a>
+        </div>
+    </div>
+    <div id="registration" class="input-group">
+        <div class="enterTitle">Create a new account</div>
+        <div class="input-group">
+            <input class="registrationItem custom-input" type="text" id="regNameInput" placeholder="Enter your name">
+            <input class="registrationItem custom-input" type="password" id="regPasswordInput" placeholder="Enter your password">
+            <button class="registrationItem" id="registerSubmitButton">Submit Registration</button>
+            <a href="javascript:void(0)" class="registrationItem" id="alreadyHaveAccount">Already have account</a>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="content">
+
+    <div id="chatList">
+        <h3>Chats</h3>
+        <div id="chatItems"></div>
+    </div>
+
     <div id="chatWindow">
-        <button id="connectButton">Connect to server</button>
 
-        <div id="auth">
-            <button id="registerButton">Register</button>
-            <button id="loginButton">Login</button>
-        </div>
+        <div id="companionInfInChat"></div>
 
-        <div id="registration" class="input-group">
-            <input type="text" id="regNameInput" placeholder="Enter your name">
-            <input type="password" id="regPasswordInput" placeholder="Enter your password">
-            <button id="registerSubmitButton">Submit Registration</button>
-        </div>
+        <div id="messages"></div>
 
-        <div id="login" class="input-group">
-            <input type="text" id="loginNameInput" placeholder="Enter your name">
-            <input type="password" id="loginPasswordInput" placeholder="Enter your password">
-            <button id="loginSubmitButton">Submit Login</button>
-        </div>
-
-        <div id="messages" style="display: none;"></div>
-
-        <div id="messageInputContainer" class="input-group" style="display: none;">
+        <div id="messageInputContainer" class="message-input-group">
             <input type="text" id="messageInput" placeholder="Enter your message">
-            <button id="sendMessageButton">Send Message</button>
+            <button id="sendMessageButton"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z"/></svg></button>
         </div>
     </div>
 </div>
