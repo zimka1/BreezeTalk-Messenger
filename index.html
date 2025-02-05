@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>BreezeTalk</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="header_styles.css">
     <link rel="stylesheet" href="enter_styles.css">
     <link rel="stylesheet" href="chat_styles.css">
 </head>
@@ -29,8 +29,8 @@
     <div id="login">
         <div class="enterTitle">Log in</div>
         <div class="input-group">
-            <input class="loginItem custom-input" type="text" id="loginNameInput" placeholder="Enter your name">
-            <input class="loginItem custom-input" type="password" id="loginPasswordInput" placeholder="Enter your password">
+            <input class="loginItem custom-input" type="text" id="loginNameInput" placeholder="Nickname">
+            <input class="loginItem custom-input" type="password" id="loginPasswordInput" placeholder="Password">
             <button class="loginItem" id="loginSubmitButton">Submit Login</button>
             <a href="javascript:void(0)" class="loginItem" id="creatNewAccount">Creat new account</a>
         </div>
@@ -38,8 +38,12 @@
     <div id="registration" class="input-group">
         <div class="enterTitle">Create a new account</div>
         <div class="input-group">
-            <input class="registrationItem custom-input" type="text" id="regNameInput" placeholder="Enter your name">
-            <input class="registrationItem custom-input" type="password" id="regPasswordInput" placeholder="Enter your password">
+            <div class="personal-info">
+                <input class="registrationItem custom-input" type="text" id="firstNameInput" placeholder="First Name">
+                <input class="registrationItem custom-input" type="text" id="lastNameInput" placeholder="Last Name">
+            </div>
+            <input class="registrationItem custom-input" type="text" id="regNameInput" placeholder="Nickname">
+            <input class="registrationItem custom-input" type="password" id="regPasswordInput" placeholder="Password">
             <button class="registrationItem" id="registerSubmitButton">Submit Registration</button>
             <a href="javascript:void(0)" class="registrationItem" id="alreadyHaveAccount">Already have account</a>
         </div>

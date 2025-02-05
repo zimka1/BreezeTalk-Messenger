@@ -10,7 +10,9 @@ using json = nlohmann::json;
 // User data structure
 struct UserData {
     int id;
-    string name;
+    string firstname;
+    string lastname;
+    string nickname;
     string password;
     string hisChat;
 };
@@ -31,7 +33,9 @@ void initDatabase() {
 
     const char* createUsersTable = "CREATE TABLE IF NOT EXISTS users ("
                                    "id INTEGER PRIMARY KEY,"
-                                   "name TEXT NOT NULL,"
+                                   "firstname TEXT NOT NULL,"
+                                   "lastname TEXT NOT NULL,"
+                                   "nickname TEXT NOT NULL,"
                                    "password TEXT NOT NULL);";
 
     const char* createMessagesTable = "CREATE TABLE IF NOT EXISTS messages ("
@@ -121,11 +125,11 @@ void process_public_msg(json parsed_data, uWS::WebSocket<false, true, UserData> 
     string message = parsed_data["text"];
     for (const auto& user : connectedUsers) {
         if (udata->id != user.first) {
-            saveMessage(udata->id, user.first, udata->name + ": " +  message);
+            saveMessage(udata->id, user.first, udata->nickname + ": " +  message);
         }
     }
 
-    ws->publish("public", udata->name + ": " + message);
+    ws->publish("public", udata->nickname + ": " + message);
 }
 
 // Process private message
@@ -148,18 +152,22 @@ void process_private_msg(json parsed_data, uWS::WebSocket<false, true, UserData>
 // Process registration
 void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
     auto* udata = ws->getUserData();
-    udata->name = parsed_data["name"];
+    udata->firstname = parsed_data["firstname"];
+    udata->lastname = parsed_data["lastname"];
+    udata->nickname = parsed_data["nickname"];
     udata->password = parsed_data["password"];
     udata->id = latest_user_id++;
     udata->hisChat = "user" + to_string(udata->id);
     cout << "New user registered: " << udata->id << endl;
 
-    const char* insertUserSQL = "INSERT INTO users (id, name, password) VALUES (?, ?, ?)";
+    const char* insertUserSQL = "INSERT INTO users (id, firstname, lastname, nickname, password) VALUES (?, ?, ?, ?, ?)";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, insertUserSQL, -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int(stmt, 1, udata->id);
-        sqlite3_bind_text(stmt, 2, udata->name.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, 3, udata->password.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 2, udata->firstname.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 3, udata->lastname.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 4, udata->nickname.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 5, udata->password.c_str(), -1, SQLITE_STATIC);
         if (sqlite3_step(stmt) != SQLITE_DONE) {
             cerr << "Error inserting user: " << sqlite3_errmsg(db) << endl;
         }
@@ -177,7 +185,7 @@ void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData
     ws->subscribe("public");
     ws->subscribe(udata->hisChat);
 
-    ws->publish("public", "New user " + to_string(udata->id) + " registered with name " + udata->name);
+    ws->publish("public", "New user " + to_string(udata->id) + " registered with name " + udata->nickname);
 
     connectedUsers[udata->id] = udata;
 
@@ -190,38 +198,38 @@ void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData
 
 // Process login and send previous messages
 void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
-    string name = parsed_data["name"];
+    string nickname = parsed_data["nickname"];
     string password = parsed_data["password"];
     sqlite3_stmt* stmt;
-    const char* sql = "SELECT id, name, password FROM users WHERE name = ?";
+    const char* sql = "SELECT id, nickname, password FROM users WHERE nickname = ?";
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 1, nickname.c_str(), -1, SQLITE_STATIC);
 
         if (sqlite3_step(stmt) == SQLITE_ROW) {
             int id = sqlite3_column_int(stmt, 0);
             const char* dbName = (const char*)sqlite3_column_text(stmt, 1);
             const char* dbPassword = (const char*)sqlite3_column_text(stmt, 2);
 
-            if (password == dbPassword && name == dbName) {
+            if (password == dbPassword && nickname == dbName) {
                 auto* udata = ws->getUserData();
                 udata->id = id;
-                udata->name = name;
+                udata->nickname = nickname;
                 udata->password = password;
                 udata->hisChat = "user" + to_string(udata->id);
 
                 json response = {
                         {"command", "logged_in"},
                         {"user_id", udata->id},
-                        {"name", udata->name},
+                        {"name", udata->nickname},
                         {"messages", getMessages(udata->id, udata->id)}
                 };
                 ws->send(response.dump(), uWS::OpCode::TEXT);
                 ws->subscribe("public");
                 ws->subscribe(udata->hisChat);
 
-                cout << "User " << udata->name << " logged in with ID: " << udata->id << endl;
-                ws->publish("public", "User " + udata->name + " logged in");
+                cout << "User " << udata->nickname << " logged in with ID: " << udata->id << endl;
+                ws->publish("public", "User " + udata->nickname + " logged in");
 
                 connectedUsers[udata->id] = udata;
             } else {
@@ -245,26 +253,28 @@ void process_logout(uWS::WebSocket<false, true, UserData> *ws) {
         cout << "User " << udata->id << " logged out" << endl;
         connectedUsers.erase(udata->id); // Remove user from global container
         udata->id = 0;
-        udata->name = "";
+        udata->nickname = "";
         udata->password = "";
         udata->hisChat = "";
     }
-    ws->publish("public", "User " + udata->name + " logged out");
+    ws->publish("public", "User " + udata->nickname + " logged out");
 }
 
 // Process user list request from the database
 void process_user_list_from_db(uWS::WebSocket<false, true, UserData> *ws) {
     auto* udata = ws->getUserData();
-    const char* sql = "SELECT id, name FROM users";
+    const char* sql = "SELECT id, firstname, lastname, nickname FROM users";
     sqlite3_stmt* stmt;
     json userList = json::array();
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             int id = sqlite3_column_int(stmt, 0);
-            const char* name = (const char*)sqlite3_column_text(stmt, 1);
+            const char* firstname = (const char*)sqlite3_column_text(stmt, 1);
+            const char* lastname = (const char*)sqlite3_column_text(stmt, 2);
+            const char* nickname = (const char*)sqlite3_column_text(stmt, 3);
             if (id != udata->id) {
-                userList.push_back({{"id", id}, {"name", name}});
+                userList.push_back({{"id", id}, {"nickname", nickname}, {"firstname", firstname}, {"lastname", lastname}});
             }
         }
         sqlite3_finalize(stmt);
@@ -305,9 +315,6 @@ json getLastMessage(int user_from, int user_to) {
         sqlite3_bind_int(stmt, 3, user_to);
         sqlite3_bind_int(stmt, 4, user_from);
         if (sqlite3_step(stmt) == SQLITE_ROW) {
-            int id = sqlite3_column_int(stmt, 0);
-            int user_from = sqlite3_column_int(stmt, 1);
-            int user_to = sqlite3_column_int(stmt, 2);
             const char* messageText = (const char*)sqlite3_column_text(stmt, 3);
 
             lastMessage = messageText;

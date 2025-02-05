@@ -94,27 +94,36 @@ document.getElementById('alreadyHaveAccount').addEventListener('click', () => {
 });
 
 document.getElementById('registerSubmitButton').addEventListener('click', () => {
-    const name = document.getElementById('regNameInput').value;
+    const firstname = document.getElementById('firstNameInput').value;
+    const lastname = document.getElementById('lastNameInput').value;
+    const nickname = document.getElementById('regNameInput').value;
     const password = document.getElementById('regPasswordInput').value;
 
     document.getElementById('regNameInput').value = "";
     document.getElementById('regPasswordInput').value = "";
+    document.getElementById('firstNameInput').value = "";
+    document.getElementById('lastNameInput').value = "";
 
-    if (name.trim() !== "" && password.trim() !== "") {
-        const payload = JSON.stringify({command: "register", name: name, password: password});
+    console.log(firstname);
+    console.log(lastname);
+    console.log(nickname);
+    console.log(password);
+
+    if (nickname.trim() !== "" && password.trim() !== "") {
+        const payload = JSON.stringify({command: "register", firstname: firstname, lastname: lastname, nickname: nickname, password: password});
         socket.send(payload);
     }
 });
 
 document.getElementById('loginSubmitButton').addEventListener('click', () => {
-    const name = document.getElementById('loginNameInput').value;
+    const nickname = document.getElementById('loginNameInput').value;
     const password = document.getElementById('loginPasswordInput').value;
 
     document.getElementById('loginNameInput').value = "";
     document.getElementById('loginPasswordInput').value = "";
 
-    if (name.trim() !== "" && password.trim() !== "") {
-        const payload = JSON.stringify({command: "login", name: name, password: password});
+    if (nickname.trim() !== "" && password.trim() !== "") {
+        const payload = JSON.stringify({command: "login", nickname: nickname, password: password});
         socket.send(payload);
     }
 });
@@ -152,7 +161,7 @@ function updateChatList(users) {
         const userInfo = document.createElement('div');
         userInfo.className = 'user-info';
         userInfo.innerHTML = `
-            <div class="user-name">${user.name} (ID: ${user.id})</div>
+            <div class="user-name">${user.firstname} ${user.lastname} (ID: ${user.id})</div>
             <div class="last-message" id="last-message-${user.id}">Loading...</div>
         `;
 
@@ -161,7 +170,7 @@ function updateChatList(users) {
             setActiveChat(chatItem);
             selectedUserId = Number(chatItem.dataset.userId);
             loadMessages(selectedUserId);
-            appendCompanionInfInChat(`${user.name}`);
+            appendCompanionInfInChat(`${user.firstname} ${user.lastname}`);
         });
         chatItem.appendChild(userInfo);
         chatItems.appendChild(chatItem);
@@ -241,6 +250,8 @@ function showMessages() {
 
 function hideChatElements() {
     document.getElementById('enterID').style.display = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('registration').style.display = 'none';
     document.getElementById('content').style.display = 'none'
     document.getElementById('header').style.display = 'none'
     document.getElementById('companionInfInChat').style.display = 'none';
