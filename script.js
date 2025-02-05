@@ -44,6 +44,22 @@ document.getElementById('connectButton').addEventListener('click', () => {
                     if (selectedUserId === parsedData.user_from){
                         loadMessages(parsedData.user_from);
                     }
+                    console.log(parsedData.user_to);
+                    console.log(parsedData.user_from);
+                    console.log(curUserID);
+                    let user_to= parsedData.user_to;
+                    let user_from = parsedData.user_from;
+                    let message = parsedData.message;
+                    updateLastMessage(user_to, user_from, message);
+                } else if (parsedData.command === "last_message") {
+                    console.log(parsedData.user_to);
+                    console.log(parsedData.user_from);
+                    console.log(curUserID);
+                    let user_to= parsedData.user_to;
+                    let user_from = parsedData.user_from;
+                    let message = parsedData.message;
+                    updateLastMessage(user_to, user_from, message);
+
                 }
             } catch (e) {
                 appendMessage(event.data);
@@ -117,6 +133,10 @@ document.getElementById('sendMessageButton').addEventListener('click', () => {
         socket.send(payload);
         document.getElementById('messageInput').value = "";
         loadMessages(selectedUserId)
+        console.log(curUserID);
+        console.log(selectedUserId);
+        console.log(message);
+        updateLastMessage(curUserID, selectedUserId, message);
     }
 });
 
@@ -127,8 +147,15 @@ function updateChatList(users) {
     users.forEach(user => {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
-        chatItem.textContent = `${user.name} (ID: ${user.id})`;
         chatItem.dataset.userId = user.id;
+
+        const userInfo = document.createElement('div');
+        userInfo.className = 'user-info';
+        userInfo.innerHTML = `
+            <div class="user-name">${user.name} (ID: ${user.id})</div>
+            <div class="last-message" id="last-message-${user.id}">Loading...</div>
+        `;
+
         chatItem.addEventListener('click', () => {
             showMessages();
             setActiveChat(chatItem);
@@ -136,8 +163,26 @@ function updateChatList(users) {
             loadMessages(selectedUserId);
             appendCompanionInfInChat(`${user.name}`);
         });
+        chatItem.appendChild(userInfo);
         chatItems.appendChild(chatItem);
+
+        getLastMessageWithUser(user.id)
+
     });
+}
+
+function updateLastMessage(user_to, user_from, message) {
+    let lastMessageElement;
+
+    if (curUserID === user_to) {
+        lastMessageElement = document.getElementById(`last-message-${user_from}`);
+    } else if (curUserID === user_from) {
+        lastMessageElement = document.getElementById(`last-message-${user_to}`);
+    }
+
+    if (lastMessageElement) {
+        lastMessageElement.innerHTML = message;
+    }
 }
 
 function appendMessage(userFromID, message) {
@@ -162,6 +207,11 @@ function appendCompanionInfInChat(userName){
 
 function loadMessages(userId) {
     const payload = JSON.stringify({command: "get_messages", user_id: userId});
+    socket.send(payload);
+}
+
+function getLastMessageWithUser(userId) {
+    const payload = JSON.stringify({command: "get_last_message", user_id: userId});
     socket.send(payload);
 }
 
