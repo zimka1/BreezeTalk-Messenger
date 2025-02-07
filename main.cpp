@@ -384,7 +384,6 @@ void process_get_last_message(json parsed_data, uWS::WebSocket<false, true, User
         };
         ws->send(response.dump(), uWS::OpCode::TEXT);
     } else {
-        cout << "aaaaa" << endl;
         json response = {
                 {"command", "last_message"},
                 {"user_from", user_to},
