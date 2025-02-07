@@ -6,12 +6,18 @@ function handleChatList(users) {
         chatItem.className = 'chat-item';
         chatItem.dataset.userId = user.id;
 
+
         const userInfo = document.createElement('div');
         userInfo.className = 'user-info';
         userInfo.innerHTML = `
             <div class="user-name">${user.firstname} ${user.lastname} (ID: ${user.id})</div>
             <div class="last-message" id="last-message-${user.id}">Loading...</div>
         `;
+        const userAvatar = document.createElement('div');
+        userAvatar.className = 'user-avatar';
+        userAvatar.innerHTML = user.firstname[0];
+
+
 
         chatItem.addEventListener('click', () => {
             showMessages();
@@ -20,6 +26,7 @@ function handleChatList(users) {
             loadMessages(selectedUserId);
             appendCompanionInfInChat(`${user.firstname} ${user.lastname}`);
         });
+        chatItem.appendChild(userAvatar);
         chatItem.appendChild(userInfo);
         chatItems.appendChild(chatItem);
 
