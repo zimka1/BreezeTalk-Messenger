@@ -232,12 +232,12 @@ void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) 
                 ws->publish("public", "User " + udata->nickname + " logged in");
 
                 connectedUsers[udata->id] = udata;
-            } else {
-                json response = {{"command", "login_failed"}, {"message", "Invalid password"}};
+            } else if (password != dbPassword) {
+                json response = {{"command", "login_failed"}, {"fail", "password"}};
                 ws->send(response.dump(), uWS::OpCode::TEXT);
             }
         } else {
-            json response = {{"command", "login_failed"}, {"message", "User not found"}};
+            json response = {{"command", "login_failed"}, {"fail", "name"}};
             ws->send(response.dump(), uWS::OpCode::TEXT);
         }
         sqlite3_finalize(stmt);

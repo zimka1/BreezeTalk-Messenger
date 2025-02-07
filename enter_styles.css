@@ -68,6 +68,15 @@
     border-radius: 8px;
 }
 
+.loginFail {
+    display: none;
+    width: 250px;
+    font-size: 13px;
+    color: red;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
 #registration .input-group .custom-input {
     width: 400px;
 }

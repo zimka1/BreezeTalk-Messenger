@@ -57,10 +57,6 @@ function handleParsedData(parsedData) {
     }
 }
 
-function handleLoginFail(parsedData) {
-    appendMessage("Login failed: " + parsedData.message);
-}
-
 function handleSocketClose(event) {
     console.log("Disconnected from server");
     appendMessage("Disconnected from server");
@@ -107,7 +103,7 @@ function showMessages() {
 
 function hideChatElements() {
     document.getElementById('enterID').style.display = 'none';
-    document.getElementById('login').style.display = 'flex';
+    document.getElementById('login').style.display = 'none';
     document.getElementById('registration').style.display = 'none';
     document.getElementById('content').style.display = 'none'
     document.getElementById('header').style.display = 'none'

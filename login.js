@@ -1,7 +1,26 @@
 function handleLoggedIn(parsedData) {
     document.getElementById('connectionStatus').innerText = "Logged in as " + parsedData.name + " (User ID: " + parsedData.user_id + ")";
+    document.getElementById('loginNameInput').style.marginBottom = "20px";
+    document.getElementById('loginPasswordInput').style.marginBottom = "20px";
+    document.getElementById('nameFail').style.display = "none";
+    document.getElementById('passwordFail').style.display = "none";
     curUserID = parsedData.user_id;
     showChatElements();
+}
+
+function handleLoginFail(parsedData) {
+    if (parsedData.fail === "name") {
+        document.getElementById('nameFail').style.display = "block";
+        document.getElementById('loginNameInput').style.marginBottom = "0";
+        document.getElementById('loginPasswordInput').style.marginBottom = "20px";
+        document.getElementById('passwordFail').style.display = "none";
+    } else if (parsedData.fail === "password"){
+        document.getElementById('nameFail').style.display = "none";
+        document.getElementById('loginNameInput').style.marginBottom = "20px";
+        document.getElementById('passwordFail').style.display = "block";
+        document.getElementById('loginPasswordInput').style.marginBottom = "0";
+
+    }
 }
 
 document.getElementById('loginSubmitButton').addEventListener('click', () => {
