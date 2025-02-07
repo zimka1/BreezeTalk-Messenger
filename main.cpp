@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 #include <sqlite3.h>
-
 using namespace std;
 using json = nlohmann::json;
 
@@ -118,6 +117,7 @@ int getLastUserId(sqlite3* db) {
 
     return lastId;
 }
+
 
 // Process public message
 void process_public_msg(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
@@ -304,10 +304,47 @@ void process_get_messages(json parsed_data, uWS::WebSocket<false, true, UserData
     ws->send(response.dump(), uWS::OpCode::TEXT);
 }
 
-json getLastMessage(int user_from, int user_to) {
-    const char* getLastMessageSQL = "SELECT * FROM messages WHERE (user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?) ORDER BY id DESC LIMIT 1";
+json getUserInfo(int user_id) {
+    const char* getUserInfo = "SELECT id, firstname, lastname FROM users WHERE id = ?";
     sqlite3_stmt* stmt;
-    string lastMessage;
+    json info;
+    if (sqlite3_prepare_v2(db, getUserInfo, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, user_id);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            const char* firstname = (const char*)sqlite3_column_text(stmt, 1);
+            const char* lastname = (const char*)sqlite3_column_text(stmt, 2);
+
+            info = {
+                    {"firstname", firstname},
+                    {"lastname", lastname}
+            };
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        cerr << "Error executing query: " << sqlite3_errmsg(db) << endl;
+    }
+
+    return info;
+
+}
+
+//void process_getUserInfo (json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
+//    int user_id = parsed_data[user_id];
+//    json info = getUserInfo(user_id);
+//    if (!info.empty()) {
+//        json response = {
+//                {"command", "userInfo"},
+//                {"info", info}
+//        };
+//        ws->send(response.dump(), uWS::OpCode::TEXT)
+//    }
+//}
+
+
+json getLastMessage(int user_from, int user_to) {
+    const char* getLastMessageSQL = "SELECT user_from, user_to, message FROM messages WHERE (user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?) ORDER BY id DESC LIMIT 1";
+    sqlite3_stmt* stmt;
+    json lastMessage;
 
     if (sqlite3_prepare_v2(db, getLastMessageSQL, -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int(stmt, 1, user_from);
@@ -315,9 +352,14 @@ json getLastMessage(int user_from, int user_to) {
         sqlite3_bind_int(stmt, 3, user_to);
         sqlite3_bind_int(stmt, 4, user_from);
         if (sqlite3_step(stmt) == SQLITE_ROW) {
-            const char* messageText = (const char*)sqlite3_column_text(stmt, 3);
-
-            lastMessage = messageText;
+            int u_from = sqlite3_column_int(stmt, 0);
+            int u_to = sqlite3_column_int(stmt, 1);
+            const char *messageText = (const char *) sqlite3_column_text(stmt, 2);
+            lastMessage = {
+                    {"user_from", u_from},
+                    {"user_to", u_to},
+                    {"message", messageText}
+            };
         }
         sqlite3_finalize(stmt);
     } else {
@@ -331,21 +373,24 @@ void process_get_last_message(json parsed_data, uWS::WebSocket<false, true, User
     auto* udata = ws->getUserData();
     int user_to = parsed_data["user_id"];
     json lastMessage = getLastMessage(udata->id, user_to);
-
     if (!lastMessage.empty()) {
+        json userInfo_from = getUserInfo(lastMessage["user_from"]);
         json response = {
                 {"command", "last_message"},
-                {"user_from", udata->id},
-                {"user_to", user_to},
-                {"message", lastMessage}
+                {"user_from", lastMessage["user_from"]},
+                {"user_to", lastMessage["user_to"]},
+                {"userInfo_from", userInfo_from},
+                {"message", lastMessage["message"]}
         };
         ws->send(response.dump(), uWS::OpCode::TEXT);
     } else {
+        cout << "aaaaa" << endl;
         json response = {
                 {"command", "last_message"},
-                {"user_from", udata->id},
-                {"user_to", user_to},
-                {"message", "No messages found"}
+                {"user_from", user_to},
+                {"user_to", udata->id},
+                {"userInfo_from", ""},
+                {"message", ""}
         };
         ws->send(response.dump(), uWS::OpCode::TEXT);
     }
@@ -402,7 +447,7 @@ int main() {
                     process_user_list_from_db(ws);
                 } else if (parsed_data["command"] == "get_messages") {
                     process_get_messages(parsed_data, ws);
-                } else if (parsed_data["command"] == "get_last_message"){
+                } else if (parsed_data["command"] == "get_last_message") {
                     process_get_last_message(parsed_data, ws);
                 }
             },

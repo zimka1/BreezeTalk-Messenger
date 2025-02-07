@@ -44,21 +44,14 @@ document.getElementById('connectButton').addEventListener('click', () => {
                     if (selectedUserId === parsedData.user_from){
                         loadMessages(parsedData.user_from);
                     }
-                    console.log(parsedData.user_to);
-                    console.log(parsedData.user_from);
-                    console.log(curUserID);
-                    let user_to= parsedData.user_to;
                     let user_from = parsedData.user_from;
-                    let message = parsedData.message;
-                    updateLastMessage(user_to, user_from, message);
+                    getLastMessageWithUser(user_from);
                 } else if (parsedData.command === "last_message") {
-                    console.log(parsedData.user_to);
-                    console.log(parsedData.user_from);
-                    console.log(curUserID);
                     let user_to= parsedData.user_to;
                     let user_from = parsedData.user_from;
                     let message = parsedData.message;
-                    updateLastMessage(user_to, user_from, message);
+                    let userFirstname_from = parsedData.userInfo_from.firstname;
+                    updateLastMessage(user_to, user_from, message, userFirstname_from);
 
                 }
             } catch (e) {
@@ -142,10 +135,7 @@ document.getElementById('sendMessageButton').addEventListener('click', () => {
         socket.send(payload);
         document.getElementById('messageInput').value = "";
         loadMessages(selectedUserId)
-        console.log(curUserID);
-        console.log(selectedUserId);
-        console.log(message);
-        updateLastMessage(curUserID, selectedUserId, message);
+        getLastMessageWithUser(selectedUserId);
     }
 });
 
@@ -180,17 +170,19 @@ function updateChatList(users) {
     });
 }
 
-function updateLastMessage(user_to, user_from, message) {
+function updateLastMessage(user_to, user_from, message, userFirstname_from) {
     let lastMessageElement;
-
     if (curUserID === user_to) {
         lastMessageElement = document.getElementById(`last-message-${user_from}`);
     } else if (curUserID === user_from) {
         lastMessageElement = document.getElementById(`last-message-${user_to}`);
     }
 
-    if (lastMessageElement) {
-        lastMessageElement.innerHTML = message;
+    if (message !== "") {
+        lastMessageElement.innerHTML = userFirstname_from + ": " + message;
+    } else {
+        console.log("vaaaaaa");
+        lastMessageElement.innerHTML = "";
     }
 }
 
