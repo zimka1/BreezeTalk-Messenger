@@ -23,7 +23,7 @@ function handleChatList(users) {
             showMessages();
             setActiveChat(chatItem);
             selectedUserId = Number(chatItem.dataset.userId);
-            loadMessages(selectedUserId);
+            loadMessages(selectedUserId, 1);
             appendCompanionInfInChat(`${user.firstname} ${user.lastname}`);
         });
         chatItem.appendChild(userAvatar);

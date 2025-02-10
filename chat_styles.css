@@ -86,6 +86,16 @@
     border-bottom: 1px solid #ddd;
 }
 
+.dividingLine {
+    width: 80%;
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    margin: 10px auto 5px;
+    border-radius: 10px;
+    background-color: rgba(85, 85, 85, 0.3); /* Цвет фона с прозрачностью */
+    color: black; /* Цвет текста */
+}
 
 #messages {
     display: none;

@@ -26,14 +26,8 @@ function handleSocketMessage(event) {
     console.log(">server>", event.data);
 
     if (typeof event.data === 'string') {
-        try {
-            const parsedData = JSON.parse(event.data);
-            handleParsedData(parsedData);
-        } catch (e) {
-            appendMessage(event.data);
-        }
-    } else {
-        appendMessage("Received non-text message");
+        const parsedData = JSON.parse(event.data);
+        handleParsedData(parsedData);
     }
 }
 
@@ -48,24 +42,26 @@ function handleParsedData(parsedData) {
         handleChatList(parsedData.users);
     } else if (parsedData.command === "user_list_refresh") {
         handleUserListRefresh();
-    } else if (parsedData.command === "messages") {
-        handleMessages(parsedData);
+    } else if (parsedData.command === "onlyReadMessages") {
+        handleOnlyReadMessages(parsedData);
+    } else if (parsedData.command == "onlyUnreadMessages") {
+        handleOnlyUnreadMessages(parsedData);
     } else if (parsedData.command === "private_msg") {
         handlePrivateMessage(parsedData);
     } else if (parsedData.command === "last_message") {
         handleLastMessage(parsedData);
+    } else if (parsedData.command === "sentAcknowledgement") {
+        handleSentAcknowledgement(parsedData);
     }
 }
 
 function handleSocketClose(event) {
     console.log("Disconnected from server");
-    appendMessage("Disconnected from server");
     document.getElementById('connectionStatus').innerText = "Disconnected";
 }
 
 function handleSocketError(error) {
     console.error("WebSocket error: ", error);
-    appendMessage("WebSocket error: " + error.message);
     document.getElementById('connectionStatus').innerText = "Error";
 }
 

@@ -41,6 +41,7 @@ void initDatabase() {
                                       "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                                       "user_from INTEGER,"
                                       "user_to INTEGER,"
+                                      "hasBeenRead INTEGER,"
                                       "message TEXT NOT NULL,"
                                       "FOREIGN KEY(user_from) REFERENCES users(id),"
                                       "FOREIGN KEY(user_to) REFERENCES users(id));";
@@ -59,13 +60,30 @@ void initDatabase() {
     }
 }
 
-void saveMessage(int user_from, int user_to, const string& message) {
-    const char* insertMessageSQL = "INSERT INTO messages (user_from, user_to, message) VALUES (?, ?, ?)";
+void saveMessage(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
+    cout << parsed_data["user_from"] << " " << parsed_data["user_to"] << " " << endl;
+    int user_from = parsed_data["user_from"];
+    int user_to = parsed_data["user_to"];
+    int hasBeenRead = parsed_data["hasBeenRead"];
+    string message = parsed_data["message"];
+
+    const char* insertMessageSQL = "INSERT INTO messages (user_from, user_to, hasBeenRead, message) VALUES (?, ?, ?, ?)";
+
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, insertMessageSQL, -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_int(stmt, 1, user_from);
         sqlite3_bind_int(stmt, 2, user_to);
-        sqlite3_bind_text(stmt, 3, message.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 3, hasBeenRead);
+        sqlite3_bind_text(stmt, 4, message.c_str(), -1, SQLITE_STATIC);
+
+        json acknowledgement {
+                {"command", "sentAcknowledgement"},
+                {"user_from", user_from},
+                {"user_to", user_to},
+                {"message", message}
+        };
+
+        ws->publish("user" + to_string(user_from), acknowledgement.dump());
 
         if (sqlite3_step(stmt) != SQLITE_DONE) {
             cerr << "Error inserting message: " << sqlite3_errmsg(db) << endl;
@@ -76,7 +94,51 @@ void saveMessage(int user_from, int user_to, const string& message) {
     }
 }
 
-json getMessages(int user_from, int user_to) {
+//void saveUnreadMessage(json parsed_data) {
+//
+//    cout << parsed_data["user_from"] << " " << parsed_data["user_to"] << " " << endl;
+//    int user_from = parsed_data["user_from"];
+//    int user_to = parsed_data["user_to"];
+//    string message = parsed_data["message"];
+//
+//    const char* insertMessageSQL = "INSERT INTO unreadMessages (user_from, user_to, message) VALUES (?, ?, ?)";
+//    sqlite3_stmt* stmt;
+//    if (sqlite3_prepare_v2(db, insertMessageSQL, -1, &stmt, nullptr) == SQLITE_OK) {
+//        sqlite3_bind_int(stmt, 1, user_from);
+//        sqlite3_bind_int(stmt, 2, user_to);
+//        sqlite3_bind_text(stmt, 3, message.c_str(), -1, SQLITE_STATIC);
+//
+//        if (sqlite3_step(stmt) != SQLITE_DONE) {
+//            cerr << "Error inserting message: " << sqlite3_errmsg(db) << endl;
+//        }
+//        sqlite3_finalize(stmt);
+//    } else {
+//        cerr << "Error preparing insert statement: " << sqlite3_errmsg(db) << endl;
+//    }
+//
+//}
+
+void markMessagesAsRead(int user_from, int user_to) {
+    const char* updateMessagesSQL = "UPDATE messages SET hasBeenRead = 1 WHERE (user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?)";
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(db, updateMessagesSQL, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, user_from);
+        sqlite3_bind_int(stmt, 2, user_to);
+        sqlite3_bind_int(stmt, 3, user_to);
+        sqlite3_bind_int(stmt, 4, user_from);
+
+        if (sqlite3_step(stmt) != SQLITE_DONE) {
+            cerr << "Error updating messages: " << sqlite3_errmsg(db) << endl;
+        }
+
+        sqlite3_finalize(stmt);
+    } else {
+        cerr << "Error preparing statement: " << sqlite3_errmsg(db) << endl;
+    }
+}
+
+json getAllMessages(int user_from, int user_to) {
     const char* getMessagesSQL = "SELECT user_from, user_to, message FROM messages WHERE (user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?)";
     sqlite3_stmt* stmt;
     json messages = json::array();
@@ -90,6 +152,61 @@ json getMessages(int user_from, int user_to) {
             int from = sqlite3_column_int(stmt, 0);
             int to = sqlite3_column_int(stmt, 1);
             const char* messageText = (const char*)sqlite3_column_text(stmt, 2);
+            cout << from << ' ' << to << ' ' << messageText << endl;
+            messages.push_back({{"from", from}, {"to", to}, {"message", messageText}});
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        cerr << "Error executing query: " << sqlite3_errmsg(db) << endl;
+    }
+
+    return messages;
+}
+
+json getOnlyReadMessages(int user_from, int user_to) {
+    const char* getMessagesSQL = "SELECT user_from, user_to, hasBeenRead, message FROM messages WHERE ((user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?)) AND hasBeenRead = 1";
+    sqlite3_stmt* stmt;
+    json messages = json::array();
+
+    cout << "RRRRRRREADDDDDDDDDD:" << endl;
+
+    if (sqlite3_prepare_v2(db, getMessagesSQL, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, user_from);
+        sqlite3_bind_int(stmt, 2, user_to);
+        sqlite3_bind_int(stmt, 3, user_to);
+        sqlite3_bind_int(stmt, 4, user_from);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            int from = sqlite3_column_int(stmt, 0);
+            int to = sqlite3_column_int(stmt, 1);
+            const char* messageText = (const char*)sqlite3_column_text(stmt, 3);
+            cout << from << ' ' << to << ' ' << messageText << endl;
+            messages.push_back({{"from", from}, {"to", to}, {"message", messageText}});
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        cerr << "Error executing query: " << sqlite3_errmsg(db) << endl;
+    }
+
+    return messages;
+}
+
+json getOnlyUnreadMessages(int user_from, int user_to) {
+    const char* getMessagesSQL = "SELECT user_from, user_to, hasBeenRead, message FROM messages WHERE ((user_from = ? AND user_to = ?) OR (user_from = ? AND user_to = ?)) AND hasBeenRead = 0";
+    sqlite3_stmt* stmt;
+    json messages = json::array();
+
+    cout << "UNREADDDDDDDDDD:" << endl;
+
+    if (sqlite3_prepare_v2(db, getMessagesSQL, -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, user_from);
+        sqlite3_bind_int(stmt, 2, user_to);
+        sqlite3_bind_int(stmt, 3, user_to);
+        sqlite3_bind_int(stmt, 4, user_from);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            int from = sqlite3_column_int(stmt, 0);
+            int to = sqlite3_column_int(stmt, 1);
+            const char* messageText = (const char*)sqlite3_column_text(stmt, 3);
+            cout << from << ' ' << to << ' ' << messageText << endl;
             messages.push_back({{"from", from}, {"to", to}, {"message", messageText}});
         }
         sqlite3_finalize(stmt);
@@ -118,36 +235,25 @@ int getLastUserId(sqlite3* db) {
     return lastId;
 }
 
-
-// Process public message
-void process_public_msg(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
-    auto* udata = ws->getUserData();
-    string message = parsed_data["text"];
-    for (const auto& user : connectedUsers) {
-        if (udata->id != user.first) {
-            saveMessage(udata->id, user.first, udata->nickname + ": " +  message);
-        }
-    }
-
-    ws->publish("public", udata->nickname + ": " + message);
-}
-
 // Process private message
 void process_private_msg(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
-    auto* udata = ws->getUserData();
+    int user_from = parsed_data["user_from"];
     int user_to = parsed_data["user_to"];
-    string message = parsed_data["text"];
-    saveMessage(udata->id, user_to, message);
+    string message = parsed_data["message"];
 
-    cout << "User " << udata->id << " sent a message to " << user_to << endl;
+
+    cout << "User " << user_from << " sent message to " << user_to << endl;
     json response = {
             {"command", "private_msg"},
-            {"user_from", udata->id},
+            {"user_from", user_from},
             {"user_to", user_to},
             {"message", message}
     };
     ws->publish("user" + to_string(user_to), response.dump());
+
 }
+
+
 
 // Process registration
 void process_registration(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
@@ -222,7 +328,6 @@ void process_login(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) 
                         {"command", "logged_in"},
                         {"user_id", udata->id},
                         {"name", udata->nickname},
-                        {"messages", getMessages(udata->id, udata->id)}
                 };
                 ws->send(response.dump(), uWS::OpCode::TEXT);
                 ws->subscribe("public");
@@ -294,10 +399,32 @@ void process_user_list_from_db(uWS::WebSocket<false, true, UserData> *ws) {
 void process_get_messages(json parsed_data, uWS::WebSocket<false, true, UserData> *ws) {
     auto* udata = ws->getUserData();
     int user_to = parsed_data["user_id"];
-    json messages = getMessages(udata->id, user_to);
+    int flagMarkMessagesAsRead = parsed_data["markMessagesAsRead"];
+
+    if (flagMarkMessagesAsRead) {
+        json readMessages = getOnlyReadMessages(udata->id, user_to);
+        json unreadMessages = getOnlyUnreadMessages(udata->id, user_to);
+        markMessagesAsRead(udata->id, user_to);
+        json readMessagesResponse = {
+                {"command", "onlyReadMessages"},
+                {"user_id", user_to},
+                {"messages", readMessages}
+        };
+        ws->send(readMessagesResponse.dump(), uWS::OpCode::TEXT);
+
+        json unreadMessagesResponse = {
+                {"command", "onlyUnreadMessages"},
+                {"user_id", user_to},
+                {"messages", unreadMessages}
+        };
+        ws->send(unreadMessagesResponse.dump(), uWS::OpCode::TEXT);
+        return;
+    }
+
+    json messages = getAllMessages(udata->id, user_to);
 
     json response = {
-            {"command", "messages"},
+            {"command", "onlyReadMessages"},
             {"user_id", user_to},
             {"messages", messages}
     };
@@ -432,9 +559,7 @@ int main() {
             },
             .message = [](auto *ws, std::string_view message, uWS::OpCode opCode) {
                 json parsed_data = json::parse(message);
-                if (parsed_data["command"] == "public_msg") {
-                    process_public_msg(parsed_data, ws);
-                } else if (parsed_data["command"] == "private_msg") {
+                if (parsed_data["command"] == "private_msg") {
                     process_private_msg(parsed_data, ws);
                 } else if (parsed_data["command"] == "register") {
                     process_registration(parsed_data, ws);
@@ -448,6 +573,8 @@ int main() {
                     process_get_messages(parsed_data, ws);
                 } else if (parsed_data["command"] == "get_last_message") {
                     process_get_last_message(parsed_data, ws);
+                } else if (parsed_data["command"] == "save_read_private_msg") {
+                    saveMessage(parsed_data, ws);
                 }
             },
             .close = [](auto *ws, int /*code*/, std::string_view /*message*/) {
