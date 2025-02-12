@@ -8,7 +8,7 @@
 
 
 #chatList {
-    width: 30%;
+    width: 35%;
     border-right: 1px solid #ddd;
     background-color: #ffffff;
     overflow-y: auto;
@@ -62,11 +62,32 @@
     font-size: 16px;
 }
 
+.messages-info {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 7px;
+
+}
+
 .last-message {
     font-size: 14px;
     color: #666;
-    margin-top: 7px;
 }
+
+.unreadMessagesCount {
+    width: 15px;
+    height: 15px;
+    font-size: 10px;
+    line-height: 15px;
+    text-align: center;
+    margin-left: 10px;
+    background-color: rgba(85, 85, 85, 0.3);
+    color: black;
+    border-radius: 50%;
+}
+
 
 
 #chatWindow {
@@ -87,12 +108,12 @@
 }
 
 .dividingLine {
-    width: 80%;
+    width: 100%;
     text-align: center;
-    height: 30px;
-    line-height: 30px;
+    font-size: 13px;
+    height: 18px;
+    line-height: 18px;
     margin: 10px auto 5px;
-    border-radius: 10px;
     background-color: rgba(85, 85, 85, 0.3); /* Цвет фона с прозрачностью */
     color: black; /* Цвет текста */
 }

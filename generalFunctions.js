@@ -26,8 +26,12 @@ function handleSocketMessage(event) {
     console.log(">server>", event.data);
 
     if (typeof event.data === 'string') {
-        const parsedData = JSON.parse(event.data);
-        handleParsedData(parsedData);
+        try {
+            const parsedData = JSON.parse(event.data);
+            handleParsedData(parsedData);
+        } catch (e) {
+            console.log(event.data);
+        }
     }
 }
 
@@ -50,6 +54,8 @@ function handleParsedData(parsedData) {
         handlePrivateMessage(parsedData);
     } else if (parsedData.command === "last_message") {
         handleLastMessage(parsedData);
+    } else if (parsedData.command === "unreadMessagesCount") {
+        handleUnreadMessagesCount(parsedData);
     } else if (parsedData.command === "sentAcknowledgement") {
         handleSentAcknowledgement(parsedData);
     }
@@ -77,6 +83,9 @@ document.getElementById('alreadyHaveAccount').addEventListener('click', () => {
 });
 
 document.getElementById('logoutButton').addEventListener('click', () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+    }
     hideChatElements();
     const payload = JSON.stringify({command: "logout"});
     socket.send(payload);

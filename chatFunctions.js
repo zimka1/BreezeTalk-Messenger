@@ -21,13 +21,12 @@ function handlePrivateMessage(parsedData){
         sendMessageToReadMessagesTable(parsedData, 0);
     }
     let user_from = parsedData.user_from;
+    getUnreadMessagesCount(user_from);
     getLastMessageWithUser(user_from);
 }
 
 function handleSentAcknowledgement(parsedData) {
-    console.log("aaaaaaaaaa");
     if (selectedUserId === parsedData.user_to) {
-        console.log(parsedData.user_to);
         loadMessages(parsedData.user_to, 0);
     }
     getLastMessageWithUser(parsedData.user_to);
