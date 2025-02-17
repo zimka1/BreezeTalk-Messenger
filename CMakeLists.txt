@@ -16,7 +16,11 @@ include_directories("/Users/zimka/vcpkg/installed/arm64-osx/include")
 link_directories("/Users/zimka/vcpkg/installed/arm64-osx/lib")
 
 # Добавьте исполняемый файл
-add_executable(BreezeTalk main.cpp
+add_executable(BreezeTalk server/src/main.cpp
+        server/src/message.cpp
+        server/src/websocket.cpp
+        server/src/database.cpp
+        server/src/globals.cpp
 )
 
 # Свяжите исполняемый файл с библиотеками

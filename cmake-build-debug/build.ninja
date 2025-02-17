@@ -49,13 +49,45 @@ cmake_ninja_workdir = /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger
 
 build cmake_object_order_depends_target_BreezeTalk: phony || CMakeFiles/BreezeTalk.dir
 
-build CMakeFiles/BreezeTalk.dir/main.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_Debug /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/main.cpp || cmake_object_order_depends_target_BreezeTalk
+build CMakeFiles/BreezeTalk.dir/server/src/main.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_Debug /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/server/src/main.cpp || cmake_object_order_depends_target_BreezeTalk
   DEFINES = -DSQLITE_ENABLE_COLUMN_METADATA
-  DEP_FILE = CMakeFiles/BreezeTalk.dir/main.cpp.o.d
+  DEP_FILE = CMakeFiles/BreezeTalk.dir/server/src/main.cpp.o.d
   FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
   INCLUDES = -isystem /Users/zimka/vcpkg/installed/arm64-osx/include
   OBJECT_DIR = CMakeFiles/BreezeTalk.dir
-  OBJECT_FILE_DIR = CMakeFiles/BreezeTalk.dir
+  OBJECT_FILE_DIR = CMakeFiles/BreezeTalk.dir/server/src
+
+build CMakeFiles/BreezeTalk.dir/server/src/message.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_Debug /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/server/src/message.cpp || cmake_object_order_depends_target_BreezeTalk
+  DEFINES = -DSQLITE_ENABLE_COLUMN_METADATA
+  DEP_FILE = CMakeFiles/BreezeTalk.dir/server/src/message.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -isystem /Users/zimka/vcpkg/installed/arm64-osx/include
+  OBJECT_DIR = CMakeFiles/BreezeTalk.dir
+  OBJECT_FILE_DIR = CMakeFiles/BreezeTalk.dir/server/src
+
+build CMakeFiles/BreezeTalk.dir/server/src/websocket.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_Debug /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/server/src/websocket.cpp || cmake_object_order_depends_target_BreezeTalk
+  DEFINES = -DSQLITE_ENABLE_COLUMN_METADATA
+  DEP_FILE = CMakeFiles/BreezeTalk.dir/server/src/websocket.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -isystem /Users/zimka/vcpkg/installed/arm64-osx/include
+  OBJECT_DIR = CMakeFiles/BreezeTalk.dir
+  OBJECT_FILE_DIR = CMakeFiles/BreezeTalk.dir/server/src
+
+build CMakeFiles/BreezeTalk.dir/server/src/database.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_Debug /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/server/src/database.cpp || cmake_object_order_depends_target_BreezeTalk
+  DEFINES = -DSQLITE_ENABLE_COLUMN_METADATA
+  DEP_FILE = CMakeFiles/BreezeTalk.dir/server/src/database.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -isystem /Users/zimka/vcpkg/installed/arm64-osx/include
+  OBJECT_DIR = CMakeFiles/BreezeTalk.dir
+  OBJECT_FILE_DIR = CMakeFiles/BreezeTalk.dir/server/src
+
+build CMakeFiles/BreezeTalk.dir/server/src/globals.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_Debug /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/server/src/globals.cpp || cmake_object_order_depends_target_BreezeTalk
+  DEFINES = -DSQLITE_ENABLE_COLUMN_METADATA
+  DEP_FILE = CMakeFiles/BreezeTalk.dir/server/src/globals.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -isystem /Users/zimka/vcpkg/installed/arm64-osx/include
+  OBJECT_DIR = CMakeFiles/BreezeTalk.dir
+  OBJECT_FILE_DIR = CMakeFiles/BreezeTalk.dir/server/src
 
 
 # =============================================================================
@@ -65,7 +97,7 @@ build CMakeFiles/BreezeTalk.dir/main.cpp.o: CXX_COMPILER__BreezeTalk_unscanned_D
 #############################################
 # Link the executable BreezeTalk
 
-build BreezeTalk: CXX_EXECUTABLE_LINKER__BreezeTalk_Debug CMakeFiles/BreezeTalk.dir/main.cpp.o | /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libSQLiteCpp.a /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libz.a /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a
+build BreezeTalk: CXX_EXECUTABLE_LINKER__BreezeTalk_Debug CMakeFiles/BreezeTalk.dir/server/src/main.cpp.o CMakeFiles/BreezeTalk.dir/server/src/message.cpp.o CMakeFiles/BreezeTalk.dir/server/src/websocket.cpp.o CMakeFiles/BreezeTalk.dir/server/src/database.cpp.o CMakeFiles/BreezeTalk.dir/server/src/globals.cpp.o | /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libSQLiteCpp.a /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libz.a /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk
   LINK_LIBRARIES = -Wl,-rpath,/Users/zimka/vcpkg/installed/arm64-osx/lib  /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a  /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libSQLiteCpp.a  /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libz.a  -luv  -lz  -lusockets  /Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a
   LINK_PATH = -L/Users/zimka/vcpkg/installed/arm64-osx/lib

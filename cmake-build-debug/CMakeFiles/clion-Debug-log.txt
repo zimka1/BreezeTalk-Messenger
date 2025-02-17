@@ -1,4 +1,4 @@
 /Applications/CLion.app/Contents/bin/cmake/mac/aarch64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/aarch64/ninja -DCMAKE_TOOLCHAIN_FILE=/Users/zimka/vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja -S /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger -B /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/cmake-build-debug
--- Configuring done (0.1s)
+-- Configuring done (0.0s)
 -- Generating done (0.0s)
 -- Build files have been written to: /Users/zimka/CLionProjects/BreezeTalk/BreezeTalk-Messenger/cmake-build-debug
