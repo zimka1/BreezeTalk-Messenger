@@ -14,18 +14,12 @@
 			"add_executable",
 			"link_directories",
 			"target_link_libraries",
-			"set_target_properties",
-			"include",
-			"_find_package",
-			"find_package",
 			"include_directories"
 		],
 		"files" : 
 		[
 			"/Users/zimka/vcpkg/scripts/buildsystems/vcpkg.cmake",
-			"CMakeLists.txt",
-			"/Users/zimka/vcpkg/installed/arm64-osx/share/SQLiteCpp/SQLiteCppTargets.cmake",
-			"/Users/zimka/vcpkg/installed/arm64-osx/share/SQLiteCpp/SQLiteCppConfig.cmake"
+			"CMakeLists.txt"
 		],
 		"nodes" : 
 		[
@@ -35,7 +29,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 19,
+				"line" : 20,
 				"parent" : 0
 			},
 			{
@@ -47,51 +41,19 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 16,
+				"line" : 17,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 27,
+				"line" : 28,
 				"parent" : 0
-			},
-			{
-				"command" : 7,
-				"file" : 1,
-				"line" : 11,
-				"parent" : 0
-			},
-			{
-				"command" : 6,
-				"file" : 0,
-				"line" : 859,
-				"parent" : 5
-			},
-			{
-				"file" : 3,
-				"parent" : 6
-			},
-			{
-				"command" : 5,
-				"file" : 3,
-				"line" : 36,
-				"parent" : 7
-			},
-			{
-				"file" : 2,
-				"parent" : 8
 			},
 			{
 				"command" : 4,
-				"file" : 2,
-				"line" : 60,
-				"parent" : 9
-			},
-			{
-				"command" : 8,
 				"file" : 1,
-				"line" : 15,
+				"line" : 16,
 				"parent" : 0
 			}
 		]
@@ -105,19 +67,21 @@
 					"fragment" : "-g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics"
 				}
 			],
-			"defines" : 
-			[
-				{
-					"backtrace" : 4,
-					"define" : "SQLITE_ENABLE_COLUMN_METADATA"
-				}
-			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 11,
-					"isSystem" : true,
+					"backtrace" : 5,
 					"path" : "/Users/zimka/vcpkg/installed/arm64-osx/include"
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "/opt/homebrew/include/postgresql@14"
+				},
+				{
+					"backtrace" : 4,
+					"isSystem" : true,
+					"path" : "/opt/homebrew/include/postgresql@14/server"
 				}
 			],
 			"language" : "CXX",
@@ -163,17 +127,7 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "/Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libSQLiteCpp.a",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 4,
-				"fragment" : "/Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libz.a",
+				"fragment" : "/opt/homebrew/lib/postgresql@14/libpq.dylib",
 				"role" : "libraries"
 			},
 			{
@@ -189,11 +143,6 @@
 			{
 				"backtrace" : 4,
 				"fragment" : "-lusockets",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 10,
-				"fragment" : "/Users/zimka/vcpkg/installed/arm64-osx/debug/lib/libsqlite3.a",
 				"role" : "libraries"
 			}
 		],

@@ -1,11 +1,17 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <sqlite3.h>
 #include <iostream>
+#include "libpq-fe.h"
+#include <cstring>
 
+// Initialize the database
 void initDatabase();
-int getLastUserId(sqlite3* db);
-void printUsersTable();
+
+// Get the last user ID from the database
+int getLastUserId(PGconn* conn);
+
+// Print the users table
+void printUsersTable(PGconn* conn);
 
 #endif

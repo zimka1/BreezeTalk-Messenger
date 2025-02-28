@@ -1,5 +1,5 @@
 #include "../include/globals.h"
 
-sqlite3* db = nullptr;
-std::unordered_map<int, bool> connectedUsers;
-int latest_user_id = 0;
+PGconn* db = nullptr; // PostgreSQL database connection
+std::unordered_map<int, bool> connectedUsers; // Map to track connected users
+int latest_user_id = 0; // Latest user ID

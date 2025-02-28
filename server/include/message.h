@@ -7,6 +7,7 @@
 
 using json = nlohmann::json;
 
+// Function declarations
 void saveMessage(json parsed_data, uWS::WebSocket<false, true, UserData> *ws);
 void markMessagesAsRead(int user_from, int user_to);
 json getAllMessages(int user_from, int user_to);
